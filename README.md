@@ -9,6 +9,9 @@ Site publicado: <https://jrybarczyk.github.io/classical-mechanics-app/>
 | Aula | Aplicação | Conteúdo |
 |---:|---|---|
 | 01 | [Aula 1 · Modelos, escalas e dimensões](aula-01-modelos-escalas/) | Reynolds, análise dimensional, tubo de raios X clássico × relativístico, transformação de Galileu e frenagem da ambulância. |
+| 02 | [Aula 2 · Vetores, rotações e invariantes](aula-02-vetores-rotacoes/) | Rotação passiva de eixos, produtos escalar e vetorial, identidade BAC−CAB em notação indicial e o mapa das 27 células do símbolo de Levi-Civita. |
+| 03 | [Aula 3 · Cinemática em bases móveis](aula-03-cinematica-vetorial/) | Base polar móvel na espiral, decomposição tangencial–normal na parábola, movimento sobre a esfera em coordenadas esféricas e a formiga sobre a bola. |
+| 04 | [Aula 4 · Leis de Newton e valor inicial](aula-04-leis-newton/) | Plano inclinado com atrito, máquina de Atwood, família de soluções do problema de valor inicial e tração de Russell. |
 
 ## Como usar
 

@@ -20,11 +20,11 @@
  *      heading   título do bloco de controles
  *      equation  fórmula em texto exibida acima dos controles (opcional)
  *      hint      orientação que diz o que manter fixo (opcional)
- *      controls  lista de 1 a 3 objetos {id,label,min,max,step,value,digits,unit}
- *                onde id ∈ {parameter, secondary, tertiary}
+ *      controls  lista de 1 a 4 objetos {id,label,min,max,step,value,digits,unit}
+ *                onde id ∈ {parameter, secondary, tertiary, quaternary}
  *      animate   {control:"tertiary", speed:1, wrap:6.283} (opcional)
  *      secondary true para exibir o segundo canvas (opcional)
- *      draw(api, v)   desenha; v = {parameter, secondary, tertiary}
+ *      draw(api, v)   desenha; v = {parameter, secondary, tertiary, quaternary}
  *      text(v)        devolve os textos do painel direito
  */
 function root_draw() {
@@ -54,6 +54,11 @@ function root_draw() {
   let playing = false;
   let animation = 0;
   let lastFrame = 0;
+  /* Posição da animação em ponto flutuante. O slider arredonda o valor ao seu
+     `step`; se o passo é grosso (1° por exemplo) o incremento de um quadro se
+     perde no arredondamento e a animação fica parada. Por isso o acumulador
+     vive aqui, e o slider só recebe a cópia. */
+  let animValue = null;
 
   const station = () => byId[view];
   const control = (id) => document.querySelector(`[data-controls="${view}"] [data-role="${id}"]`);
@@ -61,7 +66,7 @@ function root_draw() {
     const input = control(id);
     return input ? Number(input.value) : 0;
   };
-  const values = () => ({ parameter: value("parameter"), secondary: value("secondary"), tertiary: value("tertiary") });
+  const values = () => ({ parameter: value("parameter"), secondary: value("secondary"), tertiary: value("tertiary"), quaternary: value("quaternary") });
 
   /* ------------------------------------------------------------------ */
   /* Construção do DOM a partir da declaração                            */
@@ -186,6 +191,7 @@ function root_draw() {
     $("zeroBtn").onclick = () => {
       const input = control(animate.control || "tertiary");
       input.value = animate.from ?? input.min;
+      animValue = null;
       draw();
     };
   }
@@ -193,6 +199,7 @@ function root_draw() {
   function togglePlay() {
     playing = !playing;
     lastFrame = performance.now();
+    animValue = null;
     updateActions();
     if (playing) animation = requestAnimationFrame(tick);
     else cancelAnimationFrame(animation);
@@ -204,8 +211,9 @@ function root_draw() {
     const input = control(animate.control || "tertiary");
     const from = Number(input.min), to = Number(input.max);
     const speed = animate.speed ?? 1;
-    let next = Number(input.value) + ((now - lastFrame) * 0.001 * speed * (to - from)) / (animate.period ?? 6);
+    let next = (animValue ?? Number(input.value)) + ((now - lastFrame) * 0.001 * speed * (to - from)) / (animate.period ?? 6);
     if (next > to) next = animate.bounce ? to - (next - to) : from + ((next - to) % (to - from));
+    animValue = next;
     input.value = next;
     lastFrame = now;
     draw();
@@ -292,7 +300,7 @@ function root_draw() {
   });
 
   document.querySelectorAll("input[data-role]").forEach((input) =>
-    input.addEventListener("input", () => { playing = false; updateActions(); draw(); })
+    input.addEventListener("input", () => { playing = false; animValue = null; updateActions(); draw(); })
   );
 
   $("resetBtn").addEventListener("click", resetAll);

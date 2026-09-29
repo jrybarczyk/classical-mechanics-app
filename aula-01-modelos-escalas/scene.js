@@ -27,9 +27,10 @@
         tab: "Escalas<br>e regimes",
         heading: "Número de Reynolds",
         equation: "Re = ρvL/η",
-        hint: "Fixe o fluido e varie o tamanho. Antes de mover, decida onde a hemácia deve cair.",
+        hint: "Fixe o fluido e varie tamanho e velocidade (escalas logarítmicas: o valor é 10 elevado ao número). Antes de mover, decida onde a hemácia deve cair.",
         controls: [
-          { id: "parameter", label: "velocidade v (log₁₀ m/s)", min: -6, max: 2, step: 0.05, value: -3, digits: 2 },
+          { id: "parameter", label: "velocidade v (log₁₀ m/s)", min: -6, max: 2, step: 0.01, value: -3, digits: 2 },
+          { id: "quaternary", label: "tamanho L (log₁₀ m)", min: -7, max: 0.5, step: 0.01, value: -5.1, digits: 2 },
           { id: "secondary", label: "viscosidade η", min: 0.3e-3, max: 5e-3, step: 0.05e-3, value: 1.2e-3, digits: 4, unit: "Pa·s" },
           { id: "tertiary", label: "densidade ρ", min: 800, max: 1300, step: 5, value: 1025, digits: 0, unit: "kg/m³" }
         ],
@@ -59,26 +60,35 @@
             api.dot(chart, L10(L), y, api.C.gold, 4);
             api.label(chart, L10(L), y + (k % 2 ? -0.55 : 0.45), nome, api.C.muted, "center", k % 2 ? "top" : "bottom");
           });
+
+          /* O ponto escolhido nos controles: (L, v) do aluno, sobre a reta. */
+          const Lsel = Math.pow(10, v.quaternary);
+          const ySel = L10(P.reynolds(v.tertiary, vel, Lsel, v.secondary));
+          if (ySel >= -8 && ySel <= 7) {
+            api.dot(chart, v.quaternary, ySel, api.C.red, 6);
+            api.label(chart, v.quaternary + 0.12, ySel - 0.5, "seu (L, v)", api.C.red, "left", "top");
+          }
         },
 
         text(v, api) {
           const vel = Math.pow(10, v.parameter);
-          const Re = P.reynolds(v.tertiary, vel, 8e-6, v.secondary);
+          const Lsel = Math.pow(10, v.quaternary);
+          const Re = P.reynolds(v.tertiary, vel, Lsel, v.secondary);
           const L1 = P.reynoldsLength(1, v.tertiary, vel, v.secondary);
           const L1000 = P.reynoldsLength(1000, v.tertiary, vel, v.secondary);
           const regime = P.dragRegime(Re);
           const rotulo = { linear: ["viscosidade domina", "ok"], transicao: ["regime de transição", "warn"], quadratico: ["inércia domina", "alert"] }[regime];
           return {
             title: "Reynolds contra tamanho",
-            subtitle: `v = ${api.sci(vel)} m/s · η = ${api.sci(v.secondary)} Pa·s`,
+            subtitle: `L = ${api.sci(Lsel)} m · v = ${api.sci(vel)} m/s · η = ${api.sci(v.secondary)} Pa·s`,
             regime: rotulo,
             caption: "Re é proporcional a L, logo uma reta de inclinação 1 neste gráfico. O que muda com o fluido é a altura da reta, não sua inclinação.",
             prediction: "Uma hemácia (8 μm, 1 mm/s) e uma bola de tênis diferem em quantas ordens de grandeza de Re?",
-            calculation: `Re = ρvL/η = ${api.sci(v.tertiary, 0)}·${api.sci(vel)}·8,0·10⁻⁶ / ${api.sci(v.secondary)}<br><b>= ${api.sci(Re)}</b><em>invertendo a expressão: L(Re = 1) = η/(ρv) = ${api.sci(L1)} m</em>`,
+            calculation: `Re = ρvL/η = ${api.sci(v.tertiary, 0)}·${api.sci(vel)}·${api.sci(Lsel)} / ${api.sci(v.secondary)}<br><b>= ${api.sci(Re)}</b><em>invertendo a expressão: L(Re = 1) = η/(ρv) = ${api.sci(L1)} m</em>`,
             metrics: [
-              ["Re da hemácia", api.sci(Re)],
-              ["Re do nadador", api.sci(P.reynolds(v.tertiary, vel, 1.8, v.secondary))],
-              ["razão entre eles", api.sci(1.8 / 8e-6, 0)],
+              ["Re do (L, v) escolhido", api.sci(Re)],
+              ["Re da hemácia (8 μm, 1 mm/s)", api.sci(P.reynolds(v.tertiary, 1e-3, 8e-6, v.secondary))],
+              ["Re da bola de tênis (6,7 cm, 30 m/s)", api.sci(P.reynolds(v.tertiary, 30, 6.7e-2, v.secondary))],
               ["L para Re = 1", `${api.sci(L1)} m`],
               ["L para Re = 10³", `${api.sci(L1000)} m`],
               ["regime de arrasto", regime === "linear" ? "linear" : regime === "quadratico" ? "quadrático" : "transição"]
