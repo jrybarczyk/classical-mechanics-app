@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desafio 1 · A amostra de sangue na centrífuga</title>
+<link rel="stylesheet" href="../_shared/dashboard.css">
+<style>
+  .desafio { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; padding: 8px 0 24px; }
+  @media (max-width: 860px) { .desafio { grid-template-columns: 1fr; } }
+  .lateral { position: sticky; top: 16px; }
+  .progresso { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 8px 0 16px; }
+  .progresso > div { height: 100%; background: var(--green); transition: width .3s; }
+  .fases { display: flex; flex-direction: column; gap: 6px; }
+  .fases button { text-align: left; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); font: inherit; cursor: pointer; display: flex; gap: 10px; align-items: center; }
+  .fases button .num { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: .85rem; background: var(--line); flex: none; }
+  .fases button .rot { flex: 1; }
+  .fases button .rot small { display: block; color: var(--muted); font-size: .75rem; }
+  .fases button.ativa { border-color: var(--dark); box-shadow: 0 0 0 2px rgba(97,155,96,.25); }
+  .fases button.feita .num { background: var(--green); color: #fff; }
+  .fases button.travada { opacity: .5; cursor: not-allowed; }
+  .fases button.travada .num { background: transparent; border: 1px dashed var(--muted); }
+  .cartao { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 24px 28px; }
+  .cartao h2 { margin: 0 0 4px; font-size: 1.35rem; }
+  .cartao .aula { color: var(--dark); font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; }
+  .narrativa { margin: 14px 0 18px; line-height: 1.55; }
+  .dados, .herdado { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px 16px; margin: 10px 0 18px; padding: 12px 16px; border-radius: 8px; background: rgba(131,196,78,.08); font-size: .95rem; }
+  .herdado { background: rgba(97,155,96,.14); }
+  .dados strong, .herdado strong { display: block; font-size: .75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  .bloco-titulo { font-size: .8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-top: 16px; }
+  .pergunta { padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; margin: 10px 0; }
+  .pergunta p { margin: 0 0 8px; line-height: 1.5; }
+  .pergunta .linha { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pergunta input, .pergunta select { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; min-width: 180px; background: #fff; color: var(--ink); }
+  .pergunta .unidade { color: var(--muted); }
+  .pergunta.certa { border-color: var(--green); background: rgba(131,196,78,.08); }
+  .pergunta.errada { border-color: #d9534f; background: rgba(217,83,79,.06); }
+  .retorno { margin-top: 8px; font-size: .9rem; }
+  .pergunta.certa .retorno { color: var(--dark); }
+  .pergunta.errada .retorno { color: #b03a37; }
+  .dica { margin-top: 8px; font-size: .9rem; padding: 8px 12px; border-left: 3px solid var(--green); background: rgba(131,196,78,.08); line-height: 1.45; }
+  .acoes { margin-top: 18px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .acoes button, .lateral button { font: inherit; padding: 10px 18px; border-radius: 8px; border: 1px solid var(--dark); background: var(--dark); color: #fff; cursor: pointer; }
+  .acoes button.secundario, .lateral button { background: transparent; color: var(--dark); }
+  .lateral button { width: 100%; margin-top: 14px; }
+  .acoes .msg { color: var(--muted); font-size: .9rem; }
+  .concluida { margin-top: 20px; padding: 16px 18px; border-radius: 10px; background: rgba(131,196,78,.14); border: 1px solid var(--green); line-height: 1.5; }
+  .concluida h3 { margin: 0 0 6px; color: var(--dark); }
+  .relatorio { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: .92rem; }
+  .relatorio th, .relatorio td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  .relatorio th { color: var(--muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; }
+  .animacao { margin: 14px 0 6px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #fff; }
+  .animacao canvas { display: block; width: 100%; height: auto; border-radius: 7px; background: #fbfcfa; }
+  .animacao .legenda { margin-top: 6px; font-size: .8rem; color: var(--muted); }
+  .laudo { margin-top: 20px; padding: 22px 26px; border: 1px solid var(--ink); border-radius: 4px; background: #fff; }
+  .laudo-cab { display: flex; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 10px; }
+  .laudo-titulo { font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .laudo-sub, .laudo-meta { color: var(--muted); font-size: .85rem; line-height: 1.45; }
+  .laudo-meta { text-align: right; }
+  .laudo h4 { margin: 18px 0 6px; }
+  .laudo ol { margin: 0; padding-left: 20px; line-height: 1.5; font-size: .95rem; color: var(--ink); }
+  .laudo ol li { margin-bottom: 4px; }
+  .relatorio tr.sec th { background: rgba(131,196,78,.12); color: var(--dark); text-transform: none; font-size: .85rem; }
+  .relatorio td.val { font-weight: 600; white-space: nowrap; }
+  .laudo-assin { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 18px; padding-top: 12px; border-top: 1px dashed var(--line); }
+  .laudo-assin input { font: inherit; padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; min-width: 260px; }
+  @media print {
+    @page { size: A4; margin: 14mm; }
+    body { background: #fff; }
+    .topbar, .lateral, footer.rodape, .cartao > :not(#laudo) { display: none !important; }
+    .desafio { display: block; padding: 0; }
+    .cartao { border: none; padding: 0; box-shadow: none; }
+    #laudo { margin: 0; border: none; padding: 0; font-size: 10.5pt; }
+    #laudo .laudo-titulo { font-size: 15pt; }
+    #laudo .relatorio { font-size: 9.5pt; }
+    #laudo .relatorio th, #laudo .relatorio td { padding: 3px 6px; }
+    #laudo ol { font-size: 9.5pt; line-height: 1.35; }
+    #laudo h4 { margin: 10px 0 4px; }
+    #laudo .acoes { display: none; }
+    #laudo input { border: none; border-bottom: 1px solid #000; border-radius: 0; }
+  }
+  .travado-aviso { padding: 20px; color: var(--muted); }
+  footer.rodape { padding: 8px 0 32px; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<main class="app-shell">
+  <header class="topbar">
+    <div class="brand"><b>BIOCOMPLEXITY</b><small>LAB · IB/UNESP</small></div>
+    <div>
+      <p class="eyebrow">Mecânica Clássica · Desafio 1 · Aulas 1 a 10</p>
+      <h1>A amostra de sangue na centrífuga</h1>
+      <p class="subtitle">Dez fases encadeadas. Cada fase só abre quando os números da anterior estão certos, porque são eles que alimentam a próxima conta.</p>
+    </div>
+    <div class="status" aria-live="polite">
+      <span>Fase atual</span>
+      <strong id="statusTitle">Fase 1 de 10</strong>
+      <small id="statusDetail">Nenhuma fase validada ainda</small>
+    </div>
+  </header>
+
+  <div class="desafio">
+    <aside class="lateral">
+      <div class="bloco-titulo">Progresso</div>
+      <div class="progresso"><div id="barra" style="width:0%"></div></div>
+      <nav class="fases" id="fases" aria-label="Fases do desafio"></nav>
+      <button id="reiniciar" type="button">Recomeçar do zero</button>
+    </aside>
+    <section class="cartao" id="cartao" aria-live="polite"></section>
+  </div>
+
+  <footer class="rodape">
+    Use vírgula ou ponto decimal; notação científica pode ser digitada como 5,3e-6 ou 5,3·10^-6.
+    As respostas são aceitas dentro de uma tolerância de arredondamento. O progresso fica salvo neste navegador.
+  </footer>
+</main>
+<script src="../_shared/draw.js"></script>
+<script src="physics.js"></script>
+<script src="animacao.js"></script>
+<script src="desafio.js"></script>
+</body>
+</html>

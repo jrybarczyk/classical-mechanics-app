@@ -6,7 +6,7 @@ ar à medida que as aulas acontecem.
 
 Site publicado: <https://jrybarczyk.github.io/classical-mechanics-app/>
 
-| Aula | Aplicação | Conteúdo |
+| # | Aplicação | Conteúdo |
 |---:|---|---|
 | 01 | [Aula 1 · Modelos, escalas e dimensões](aula-01-modelos-escalas/) | Reynolds, análise dimensional, tubo de raios X clássico × relativístico, transformação de Galileu e frenagem da ambulância. |
 | 02 | [Aula 2 · Vetores, rotações e invariantes](aula-02-vetores-rotacoes/) | Rotação passiva de eixos, produtos escalar e vetorial, identidade BAC−CAB em notação indicial e o mapa das 27 células do símbolo de Levi-Civita. |
@@ -22,6 +22,7 @@ Site publicado: <https://jrybarczyk.github.io/classical-mechanics-app/>
 | 12 | [Aula 12 · Oscilações amortecidas](aula-12-oscilacoes-amortecidas/) | O discriminante β² − ω₀² e os três regimes, a elipse de fase que vira espiral, e o fator de qualidade Q como parâmetro de projeto. |
 | 13 | [Aula 13 · Oscilações forçadas e ressonância](aula-13-ressonancia/) | Resposta estacionária em amplitude e fase, pontos de meia potência e largura de banda, e a distinção entre a ressonância em deslocamento e a em velocidade. |
 | 14 | [Aula 14 · Osciladores acoplados e modos normais](aula-14-modos-normais/) | Modos simétrico e antissimétrico, a condição inicial com só uma massa deslocada, e o batimento: o que migra entre as massas e o que não migra. |
+| D1 | [Desafio 1 · A amostra de sangue na centrífuga](desafio-01-centrifuga/) | Desafio integrador em dez fases travadas, das Aulas 1 a 10: regime de Reynolds da hemácia, sedimentação de Stokes, o protocolo de 3000 rpm, a normal no fundo do tubo, gravidade efetiva, peso relativo de Coriolis, energia do rotor, desbalanceamento e o laudo final. Cada fase só abre quando a anterior fecha. |
 
 ## Como usar
 
