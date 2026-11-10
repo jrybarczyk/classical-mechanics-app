@@ -124,6 +124,7 @@
    * de forma determinística. Devolve, para cada gota, o azimute phi, a distância
    * d no piso, o ângulo de impacto e w/ℓ.
    */
+  /* n = 24 é o padrão da função; a estação (scene.js) passa n = 26 explicitamente. */
   const spatterPattern = (v0, alphaDeg, h, n = 24) => {
     const rnd = (i, k) => { const q = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return q - Math.floor(q); };
     const out = [];

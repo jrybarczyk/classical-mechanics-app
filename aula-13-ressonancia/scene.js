@@ -146,7 +146,7 @@
         equation: "Z(ω) = R + i(ωI − E_l/ω)   ·   X(ω) = 0 em ω = √(E_l/I)",
         hint: "Varie R e observe: a frequência em que X cruza zero se move? E o pico de amplitude, existe?",
         controls: [
-          { id: "parameter", label: "resistência R", min: 0.5, max: 12, step: 0.1, value: 3, digits: 1, unit: "cmH₂O·s/L" },
+          { id: "parameter", label: "resistência R", min: 0.2, max: 12, step: 0.1, value: 3, digits: 1, unit: "cmH₂O·s/L" },
           { id: "secondary", label: "inertância I", min: 0.004, max: 0.03, step: 0.001, value: 0.01, digits: 3, unit: "cmH₂O·s²/L" },
           { id: "tertiary", label: "complacência C", min: 0.03, max: 0.25, step: 0.005, value: 0.1, digits: 3, unit: "L/cmH₂O" }
         ],
@@ -167,9 +167,10 @@
           api.label(chart, fMax * 0.96, R + 1.2, "R (resistiva)", api.C.red, "right");
           api.label(chart, fMax * 0.96, P.reactance(w(fMax), I, C) - 1.5, "X (reativa)", api.C.blue, "right", "top");
 
-          /* Painel secundário: a amplitude mecânica correspondente, que não tem pico. */
+          /* Painel secundário: a amplitude mecânica correspondente (sem pico para R ≳ 0,45). */
           const w0 = wRes, g = P.dampingFromR(R, I);
-          const s = api.axes(api.second, 0.2, 3, 0, P.amplitude(0.2 * w0, 1, w0, g) * 1.15, "ω/ω₀", "amplitude de volume");
+          const pico = P.hasAmplitudePeak(w0, g) ? P.amplitude(P.omegaAmplitude(w0, g), 1, w0, g) : 0;
+          const s = api.axes(api.second, 0.2, 3, 0, Math.max(P.amplitude(0.2 * w0, 1, w0, g), pico) * 1.15, "ω/ω₀", "amplitude de volume");
           api.line(s, api.curve((r) => P.amplitude(r * w0, 1, w0, g), 0.2, 3, 200), api.C.green);
           api.vline(s, 1, api.C.gold, [5, 4], "ω₀ = √(E_l/I)");
           if (P.hasAmplitudePeak(w0, g)) api.vline(s, P.omegaAmplitude(w0, g) / w0, api.C.red, [4, 4], "ω_R");
@@ -199,7 +200,7 @@
             ],
             concept: "Ressonância de amplitude e ressonância de reatância são fenômenos diferentes: a primeira exige amortecimento fraco, a segunda existe sempre e é a que a clínica usa.",
             prompts: [
-              "Varie R de 0,5 a 12 e confirme que a frequência de cruzamento não se move.",
+              "Varie R de 0,2 a 12 (o pico de amplitude só existe para R < 0,45) e confirme que a frequência de cruzamento não se move.",
               "Com R = 3, calcule β/ω₀ e verifique que √(ω₀² − 2β²) não é real.",
               "Explique por que o mínimo de |Z| vale exatamente R."
             ],

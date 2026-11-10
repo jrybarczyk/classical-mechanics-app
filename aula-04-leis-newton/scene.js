@@ -76,9 +76,9 @@
             title: "Diagrama de corpo livre",
             subtitle: `α = ${api.fmt(v.parameter, 0)}° · μ_k = ${api.fmt(v.secondary)} · m = ${api.fmt(v.tertiary, 1)} kg`,
             regime: desliza ? ["deslizando", "ok"] : ["estático", "alert"],
-            caption: "N e mg atuam no mesmo corpo e por isso não formam par ação–reação. A reação ao peso está na Terra, fora do diagrama.",
+            caption: "N e mg atuam no mesmo corpo e por isso não formam par ação–reação. A reação ao peso está na Terra, fora do diagrama. A aplicação adota μ_s = μ_k; em geral μ_s ≥ μ_k e é μ_s que decide a partida do repouso.",
             prediction: "Para que valor de μ_k o bloco para de deslizar com este α?",
-            calculation: `N = mg cosα = ${api.fmt(v.tertiary, 1)}·9,8·cos${api.fmt(v.parameter, 0)}° = <b>${api.fmt(N)} N</b><br>a = g(senα − μ_k cosα) = 9,8(${api.fmt(Math.sin(P.rad(v.parameter)))} − ${api.fmt(v.secondary)}·${api.fmt(Math.cos(P.rad(v.parameter)))}) = <b>${api.fmt(a)} m/s²</b><em>${desliza ? `tanα = ${api.fmt(Math.tan(P.rad(v.parameter)))} > μ: o resultado descreve descida acelerada` : `tanα ≤ μ: a expressão daria a = ${api.fmt(a)}, sem sentido físico aqui`}</em>`,
+            calculation: `N = mg cosα = ${api.fmt(v.tertiary, 1)}·9,8·cos${api.fmt(v.parameter, 0)}° = <b>${api.fmt(N)} N</b><br>a = g(senα − μ_k cosα) = 9,8(${api.fmt(Math.sin(P.rad(v.parameter)))} − ${api.fmt(v.secondary)}·${api.fmt(Math.cos(P.rad(v.parameter)))}) = <b>${api.fmt(a)} m/s²</b><em>${desliza ? `tanα = ${api.fmt(Math.tan(P.rad(v.parameter)))} > μ (μ_s = μ_k): o resultado descreve descida acelerada` : `tanα ≤ μ (μ_s = μ_k): o bloco parado não parte, e a expressão daria a = ${api.fmt(a)}, sem sentido físico para o bloco em repouso`}</em>`,
             metrics: [
               ["normal N", `${api.fmt(N)} N`],
               ["peso mg", `${api.fmt(v.tertiary * P.G)} N`],

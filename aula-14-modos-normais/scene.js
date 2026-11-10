@@ -100,7 +100,7 @@
         tab: "Batimento",
         heading: "Só a massa 1 deslocada",
         equation: "x₁ = A cos(Δωt/2)cos(ω̄t)<br>x₂ = A sen(Δωt/2)sen(ω̄t)",
-        hint: "Marque quando x₁ zera pela primeira vez. Esse instante é π/Δω, e não 2π/Δω.",
+        hint: "Marque quando a envoltória de x₁ se anula pela primeira vez. Esse instante é π/Δω, e não 2π/Δω.",
         controls: [
           { id: "parameter", label: "acoplamento κ", min: 0.05, max: 2, step: 0.01, value: 0.2, digits: 2, unit: "N/m" },
           { id: "secondary", label: "mola de parede k", min: 4, max: 20, step: 0.5, value: 10, digits: 1, unit: "N/m" },
@@ -132,11 +132,11 @@
 
           /* As mesmas soluções nas coordenadas normais: duas senoides de amplitude
              rigorosamente constante. O batimento some ao trocar de base. */
-          const s2 = api.axes(api.second, 0, tr, -0.7, 0.7, "tempo t (s)", "η₊ e η₋", { xTicks: [0, tr / 2, tr] });
+          const s2 = api.axes(api.second, 0, tr, -0.85, 0.85, "tempo t (s)", "η₊ e η₋", { xTicks: [0, tr / 2, tr] });
           api.line(s2, api.curve((t) => P.normalCoordinates(...P.beat(t, 1, k, kap, m))[0], 0, tr, 1400), api.C.blue, [], 1.6);
           api.line(s2, api.curve((t) => P.normalCoordinates(...P.beat(t, 1, k, kap, m))[1], 0, tr, 1400), api.C.gold, [], 1.6);
-          api.hline(s2, 0.5, api.C.grayLight, [4, 3], "amplitude fixa");
-          api.hline(s2, -0.5, api.C.grayLight, [4, 3]);
+          api.hline(s2, Math.SQRT1_2, api.C.grayLight, [4, 3], "amplitude fixa A/√2");
+          api.hline(s2, -Math.SQRT1_2, api.C.grayLight, [4, 3]);
           api.vline(s2, tt, api.C.ink, [3, 3]);
         },
 
@@ -153,7 +153,7 @@
             subtitle: `κ/k = ${api.fmt(kap / k, 3)} · Δω = ${api.fmt(dw, 4)} rad/s`,
             regime: kap / k < 0.05 ? ["acoplamento fraco", "ok"] : ["acoplamento apreciável", "warn"],
             caption: "As envoltórias estão em quadratura: quando uma massa para, a outra está na amplitude máxima. A transferência completa leva π/Δω, e o retorno, 2π/Δω.",
-            prediction: "Em que instante a massa 1 fica momentaneamente parada pela primeira vez?",
+            prediction: "Em que instante a amplitude (envoltória) da massa 1 se anula pela primeira vez?",
             calculation: `Δω = ω₋ − ω₊ = <b>${api.fmt(dw, 5)} rad/s</b> (aproximação κω₊/k = ${api.fmt(aprox, 5)})<br>transferência completa em π/Δω = <b>${api.fmt(tt, 3)} s</b><em>retorno à massa 1 em 2π/Δω = ${api.fmt(tr, 3)} s</em>`,
             metrics: [
               ["Δω exato", api.fmt(dw, 5)],
@@ -165,7 +165,7 @@
             ],
             concept: "O batimento não é um fenômeno novo: é a interferência entre dois modos normais, cada um com amplitude rigorosamente constante.",
             prompts: [
-              "Confirme que x₁ se anula pela primeira vez em π/Δω, e não em 2π/Δω.",
+              "Confirme que a envoltória de x₁ se anula pela primeira vez em π/Δω, e não em 2π/Δω.",
               "Reduza κ e verifique que o tempo de transferência cresce como 1/κ.",
               "Compare Δω exato com a aproximação κω₊/k e diga quando ela deixa de servir."
             ],
@@ -209,12 +209,12 @@
           api.dot(chart, t, P.massEnergies(t, 1, k, kap, m)[1], api.C.red, 4.5);
 
           /* A mesma energia repartida de duas maneiras no instante escolhido:
-             pelos modos, sempre meio a meio; pelas massas, variando o tempo todo. */
+             pelos modos, constante (≈ meio a meio para κ ≪ k); pelas massas, variando o tempo todo. */
           const [Ep, En] = P.modeEnergies(t, 1, k, kap, m);
           const [E1, E2] = P.massEnergies(t, 1, k, kap, m);
-          const s2 = api.axes(api.second, 0, 4, 0, Etot * 0.75, "", "energia (J)", { xTicks: [] });
+          const s2 = api.axes(api.second, 0, 4, 0, Etot * 1.1, "", "energia (J)", { xTicks: [] });
           api.bars(s2, [["E₊", Ep, api.C.blue], ["E₋", En, api.C.gold], ["E₁", E1, api.C.green], ["E₂", E2, api.C.red]], api.C.green, { pad: 26 });
-          api.hline(s2, Etot / 2, api.C.grayLight, [4, 3], "metade da energia total");
+          api.hline(s2, Etot / 2, api.C.grayLight, [4, 3], "metade da energia total (≈E₊ e E₋ se κ ≪ k)");
         },
 
         text(v, api) {
@@ -247,7 +247,7 @@
             legend: [[api.C.blue, "modo simétrico"], [api.C.gold, "modo antissimétrico"], [api.C.green, "massa 1"], [api.C.red, "massa 2"]],
             secondaryTitle: "Repartição no instante escolhido",
             secondarySubtitle: "duas barras não se movem; duas trocam de altura",
-            secondaryCaption: "As duas primeiras somam o mesmo que as duas últimas: é a mesma energia, contada em bases diferentes."
+            secondaryCaption: "E₊ + E₋ é a energia total. E₁ + E₂ só a iguala se se somar a energia da mola central, ½κ(x₁−x₂)²: é a mesma energia, contada em bases diferentes."
           };
         }
       }

@@ -63,6 +63,16 @@
     r * phddot * Math.sin(th) + 2 * rdot * phdot * Math.sin(th) + 2 * r * thdot * phdot * Math.cos(th)
   ];
 
+  /**
+   * Colatitude dobrada em [0, π]: θ e 2π − θ marcam o mesmo ponto da esfera (com φ
+   * deslocado de π), mas a base e_θ se inverte, de modo que a_θ muda de sinal.
+   * O painel de componentes só tem abscissa em [0, π]; o ponto deve ser lido na curva.
+   */
+  const foldColatitude = (th) => {
+    const m = ((th % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    return m > Math.PI ? 2 * Math.PI - m : m;
+  };
+
   /** Base esférica {e_r, e_θ, e_φ} em cartesianas, com θ medido a partir de z. É dextrogira: e_r × e_θ = e_φ. */
   const sphericalBasis = (th, ph) => ({
     er: [Math.sin(th) * Math.cos(ph), Math.sin(th) * Math.sin(ph), Math.cos(th)],
@@ -89,5 +99,5 @@
     return { theta: th, phi: ph, thdot, thddot, speed: Math.hypot(vt, vp), vt, vp, a };
   };
 
-  return { polarVelocity, polarAcceleration, spiral, parabola, vertexCurvature, parabolaCurvature, sphericalAcceleration, sphericalBasis, sphericalVelocity, antOnBall };
+  return { polarVelocity, polarAcceleration, spiral, parabola, vertexCurvature, parabolaCurvature, sphericalAcceleration, foldColatitude, sphericalBasis, sphericalVelocity, antOnBall };
 });

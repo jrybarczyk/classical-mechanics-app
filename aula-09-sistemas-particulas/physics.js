@@ -48,10 +48,11 @@
     Math.atan2(Math.sin(thetaCM), Math.cos(thetaCM) + ratio);
 
   /**
-   * Se m₁ > m₂ existe ângulo máximo de espalhamento no laboratório: o projétil
-   * pesado não consegue ser desviado além de arcsen(m₂/m₁).
+   * Se m₁ ≥ m₂ existe ângulo máximo de espalhamento no laboratório: o projétil
+   * não consegue ser desviado além de arcsen(m₂/m₁) (igual a 90° em m₁ = m₂,
+   * onde θ_lab = θ_cm/2). Só para m₁ < m₂ todo o intervalo até 180° é acessível.
    */
-  const maxLabAngle = (ratio) => (ratio > 1 ? Math.asin(1 / ratio) : Math.PI);
+  const maxLabAngle = (ratio) => (ratio >= 1 ? Math.asin(1 / ratio) : Math.PI);
 
   /* --- moderação de nêutrons: a colisão elástica frontal levada a sério --- */
   /**
@@ -73,11 +74,22 @@
   /** Número médio de colisões para levar um nêutron de E₀ até E_térmica. */
   const collisionsToThermal = (E0, Eth, A) => Math.log(E0 / Eth) / lethargy(A);
 
-  /** Energia restante depois de n colisões frontais, no pior caso para a blindagem. */
+  /**
+   * Energia restante depois de n colisões frontais. É o limite inferior da energia
+   * (a maior perda possível por colisão): o melhor caso para a moderação, não a
+   * média, que é governada por ξ (espalhamento isotrópico no CM).
+   */
   const energyAfter = (E0, m1, m2, n) => E0 * (1 - energyTransferFraction(m1, m2)) ** n;
+
+  /**
+   * Número de colisões frontais para ir de E₀ a E_th: ln(E₀/E_th)/(−ln(1−f)).
+   * É o mínimo possível (0 em A = 1, onde uma colisão zera a energia; Infinity se f = 0).
+   */
+  const frontalCollisionsToThermal = (E0, Eth, m1, m2) =>
+    Math.log(E0 / Eth) / -Math.log(1 - energyTransferFraction(m1, m2));
 
   /** Trajetória do CM sob força externa uniforme: uma parábola, sempre. */
   const cmTrajectory = (t, x0, y0, vx, vy, g = G) => [x0 + vx * t, y0 + vy * t - 0.5 * g * t * t];
 
-  return { G, reducedMass, centerOfMass, restitution1D, maxLoss, labAngle, maxLabAngle, cmTrajectory, energyTransferFraction, lethargy, collisionsToThermal, energyAfter };
+  return { G, reducedMass, centerOfMass, restitution1D, maxLoss, labAngle, maxLabAngle, cmTrajectory, energyTransferFraction, lethargy, collisionsToThermal, energyAfter, frontalCollisionsToThermal };
 });

@@ -290,10 +290,12 @@
           api.line(s, api.curve((g) => comp(rad(g))[1], 1, 179, 180), api.C.blue);
           api.line(s, api.curve((g) => comp(rad(g))[2], 1, 179, 180), api.C.red);
           api.vline(s, 90, api.C.gold, [5, 4], "plano equatorial");
-          const gEff = (() => { let g = ((th * 180) / Math.PI) % 360; if (g < 0) g += 360; return g > 180 ? 360 - g : g; })();
-          api.dot(s, gEff, acc[0], api.C.green, 4.5);
-          api.dot(s, gEff, acc[1], api.C.blue, 4.5);
-          api.dot(s, gEff, acc[2], api.C.red, 4.5);
+          const gEff = (P.foldColatitude(th) * 180) / Math.PI;
+          /* Os pontos são lidos na própria curva: depois do polo (θ > 180°) a_θ inverte de sinal. */
+          const accCurva = comp(rad(gEff));
+          api.dot(s, gEff, accCurva[0], api.C.green, 4.5);
+          api.dot(s, gEff, accCurva[1], api.C.blue, 4.5);
+          api.dot(s, gEff, accCurva[2], api.C.red, 4.5);
         },
 
         text(v, api) {
@@ -335,7 +337,7 @@
             legend: [[api.C.green, "v"], [api.C.red, "a"], [api.C.blue, "trajetória percorrida"], [api.C.grayLight, "base local e_r, e_θ, e_φ"]],
             secondaryTitle: "Componentes de a contra a colatitude",
             secondarySubtitle: "curvas para os θ̇ e φ̇ atuais; os pontos marcam a colatitude do instante t",
-            secondaryCaption: "Nos casos-limite duas curvas se anulam e sobra a expressão polar da estação 1."
+            secondaryCaption: "Nos casos-limite duas curvas se anulam e sobra a expressão polar da estação 1. Passado o polo (θ > 180°) a base e_θ se inverte: o ponto é lido na curva dobrada, e a_θ troca de sinal em relação ao valor da tabela."
           };
         }
       },

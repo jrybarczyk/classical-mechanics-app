@@ -149,7 +149,7 @@
         id: "projetil",
         tab: "Projétil com arrasto:<br>perturbação",
         heading: "Alcance em primeira ordem em k",
-        equation: "ẍ = −kẋ, ÿ = −kẏ − g · ε = kV/g<br>T ≃ T₀(1 − ε/3) · R′ ≃ R(1 − 4ε/3)<br>ΔR ≃ (4k v₀³/3g²) senθ sen2θ",
+        equation: "ẍ = −kẋ, ÿ = −kẏ − g · ε = k v₀y/g<br>t_v ≃ t_v0(1 − ε/3) · R′ ≃ R(1 − 4ε/3)<br>ΔR ≃ (4k v₀³/3g²) senθ sen2θ",
         hint: "A equação do tempo de voo é transcendente. Compare a solução exata (bissecção) com a primeira ordem em k e descubra até onde a reta vale.",
         controls: [
           { id: "parameter", label: "coeficiente k = b/m", min: 0, max: 0.4, step: 0.005, value: 0.02, digits: 3, unit: "1/s" },
@@ -176,7 +176,7 @@
           api.label(chart, q.R, q0.H * 0.17, "R′ exato", api.C.green, "center");
           if (k > 0 && q.Rlin > 0) api.label(chart, q.Rlin, q0.H * 0.08, "1ª ordem", api.C.red, "center", "bottom");
 
-          const sc = api.axes(api.second, 0, 0.6, 0, 0.8, "ε = kV/g", "ΔR / R");
+          const sc = api.axes(api.second, 0, 0.6, 0, 0.8, "ε = k v₀y/g", "ΔR / R");
           const ptsE = [];
           for (let e = 0; e <= 0.6001; e += 0.02) { const kk = (e * 9.8) / q0.V; const w = P.projectileLinear(v0, th, kk); ptsE.push([e, (w.R0 - w.R) / w.R0]); }
           api.line(sc, ptsE, api.C.green, [], 2.6);
@@ -193,14 +193,14 @@
           const regime = k === 0 ? ["sem arrasto: parábola", "ok"] : erro < 0.1 ? ["primeira ordem confiável", "ok"] : erro < 0.3 ? ["primeira ordem com erro visível", "warn"] : ["perturbação insuficiente", "alert"];
           return {
             title: "Perturbação em primeira ordem contra a solução exata",
-            subtitle: `k = ${api.fmt(k, 3)} s⁻¹ · v₀ = ${api.fmt(v0, 0)} m/s · θ = ${api.fmt(th, 0)}° · ε = kV/g = ${api.fmt(q.eps, 3)}`,
+            subtitle: `k = ${api.fmt(k, 3)} s⁻¹ · v₀ = ${api.fmt(v0, 0)} m/s · θ = ${api.fmt(th, 0)}° · ε = k v₀y/g = ${api.fmt(q.eps, 3)}`,
             regime,
             caption: "A tracejada cinza é a parábola sem arrasto; a verde é a trajetória exata, mais curta e assimétrica. O ponto vermelho vazado marca o alcance previsto pela primeira ordem em k: ela superestima a redução, porque os termos de ordem ε² desprezados são positivos em R′. Para ε acima de 3/4 a fórmula dá alcance negativo e o ponto some: a série truncada deixou de significar algo.",
             prediction: "A redução relativa do alcance é igual, o dobro ou o quádruplo da redução relativa do tempo de voo?",
-            calculation: `R = v₀² sen2θ/g = <b>${api.fmt(q.R0)} m</b> · T₀ = 2V/g = ${api.fmt(q.T0)} s · ε = ${api.fmt(k, 3)}·${api.fmt(q.V)}/9,8 = ${api.fmt(q.eps, 4)}<br>1ª ordem: T ≃ T₀(1 − ε/3) = ${api.fmt(q.Tlin)} s · R′ ≃ R(1 − 4ε/3) = <b>${api.fmt(q.Rlin)} m</b> · ΔR ≃ ${api.fmt(dRlin)} m<br>exato (bissecção em y(T) = 0): T = ${api.fmt(q.T, 3)} s · R′ = x(T) = <b>${api.fmt(q.R)} m</b> · ΔR = ${api.fmt(dR)} m<em>erro da primeira ordem em ΔR: ${api.fmt(100 * erro, 1)} % · altura máxima: exata ${api.fmt(q.H)} m, 1ª ordem H₀(1 − 2ε/3) = ${api.fmt(q.Hlin)} m</em>`,
+            calculation: `R = v₀² sen2θ/g = <b>${api.fmt(q.R0)} m</b> · t_v0 = 2v₀y/g = ${api.fmt(q.T0)} s · ε = ${api.fmt(k, 3)}·${api.fmt(q.V)}/9,8 = ${api.fmt(q.eps, 4)}<br>1ª ordem: t_v ≃ t_v0(1 − ε/3) = ${api.fmt(q.Tlin)} s · R′ ≃ R(1 − 4ε/3) = <b>${api.fmt(q.Rlin)} m</b> · ΔR ≃ ${api.fmt(dRlin)} m<br>exato (bissecção em y(T) = 0): T = ${api.fmt(q.T, 3)} s · R′ = x(T) = <b>${api.fmt(q.R)} m</b> · ΔR = ${api.fmt(dR)} m<em>erro da primeira ordem em ΔR: ${api.fmt(100 * erro, 1)} % · altura máxima: exata ${api.fmt(q.H)} m, 1ª ordem H₀(1 − 2ε/3) = ${api.fmt(q.Hlin)} m</em>`,
             metrics: [
-              ["parâmetro ε = kV/g", api.fmt(q.eps, 4)],
-              ["tempo de voo T exato / 1ª ordem", `${api.fmt(q.T, 3)} / ${api.fmt(q.Tlin, 3)} s`],
+              ["parâmetro ε = k v₀y/g", api.fmt(q.eps, 4)],
+              ["tempo de voo t_v exato / 1ª ordem", `${api.fmt(q.T, 3)} / ${api.fmt(q.Tlin, 3)} s`],
               ["alcance R′ exato / 1ª ordem", `${api.fmt(q.R)} / ${q.Rlin > 0 ? api.fmt(q.Rlin) + " m" : "negativo: a 1ª ordem perdeu o sentido"}`],
               ["ΔR exato / 1ª ordem", `${api.fmt(dR)} / ${api.fmt(dRlin)} m`],
               ["erro da 1ª ordem em ΔR", `${api.fmt(100 * erro, 1)} %`],
@@ -209,9 +209,9 @@
             ],
             concept: "Perturbação troca uma equação transcendente por uma sequência de contas algébricas, cada uma usando a anterior: dentro do termo que já tem um fator k entra a solução de ordem zero. O preço é uma série truncada, que só vale enquanto a própria correção é pequena.",
             prompts: [
-              "Exercício 1. Com k = 0,02 s⁻¹, v₀ = 30 m/s e θ = 45°, reproduza à mão R, T₀, ε, T e ΔR da primeira ordem e compare com os valores exatos da tela (é o exemplo resolvido da nota).",
+              "Exercício 1. Com k = 0,02 s⁻¹, v₀ = 30 m/s e θ = 45°, reproduza à mão R, t_v0, ε, T e ΔR da primeira ordem e compare com os valores exatos da tela (é o exemplo resolvido da nota).",
               "Exercício 2. Aumente k até o erro da primeira ordem em ΔR chegar a 10 % e anote o ε correspondente; repita para 25 %. Vale a regra 'confiável enquanto ΔR/R ≲ 0,1'?",
-              "Exercício 3. Verifique que ΔR/R é quatro vezes a redução relativa de T e o dobro da de H, e explique as duas vias pelas quais o arrasto encurta o alcance.",
+              "Exercício 3. Verifique que ΔR/R é quatro vezes a redução relativa de t_v e o dobro da de H, e explique as duas vias pelas quais o arrasto encurta o alcance.",
               "Exercício 4. Mantenha k e v₀ e varie θ: para que ângulo ΔR é máximo? Confira com senθ sen2θ.",
               "Exercício 5. Leve k a 0,4 s⁻¹: a trajetória exata tende a uma assíntota vertical em x = U/k. Leia U/k e compare com R′."
             ],
@@ -273,7 +273,7 @@
               ["v_T em mm/h", api.fmt(mmh)],
               ["b = 6πηR", api.sci(P.stokesB(v.tertiary, v.parameter))],
               ["τ = m/b", `${api.sci(tauS)} s`],
-              ["Reynolds", api.sci(Re)]
+              ["Reynolds (com o raio)", api.sci(Re)]
             ],
             concept: "O coeficiente b não é ajustável: para a esfera, a hidrodinâmica o calcula. É isso que transforma o modelo em previsão, e não em ajuste.",
             prompts: [
@@ -335,7 +335,7 @@
               ["tempo para cair D", `${api.fmt(a.tQueda, 2)} s`],
               ["fração depositada na pausa", api.fmt(a.fracao, 2)],
               ["pausa para deposição completa", `${api.fmt(a.tQueda, 1)} s`],
-              ["Reynolds", api.sci(a.Re)],
+              ["Reynolds (com o diâmetro)", api.sci(a.Re)],
               ["τ de relaxação da gota", `${api.sci(a.tauP)} s`]
             ],
             concept: "É a mesma lei de Stokes da hemossedimentação, com o ar no lugar do plasma: v_T ∝ d². Como a via aérea é estreita, uma velocidade de milímetros por segundo decide, em segundos, se o fármaco fica ou sai.",
@@ -357,8 +357,8 @@
       {
         id: "centrifuga",
         tab: "Física médica:<br>centrifugação",
-        heading: "Sedimentação acelerada: g → Ω²r",
-        equation: "Ω = 2π·rpm/60 · RCF = Ω²r/g<br>v = 2R²Δρ(Ω²r)/9η · t = L/v",
+        heading: "Sedimentação acelerada: g → ω²r",
+        equation: "ω = 2π·rpm/60 · RCF = ω²r/g<br>v = 2R²Δρ(ω²r)/9η · t = L/v",
         hint: "A mesma esfera de Stokes, com a gravidade substituída pela aceleração centrífuga. Preveja por quanto a sedimentação acelera a 3000 rpm e 10 cm.",
         controls: [
           { id: "parameter", label: "rotação", min: 500, max: 6000, step: 50, value: 3000, digits: 0, unit: "rpm" },
@@ -381,7 +381,7 @@
           api.dot(chart, rpm, L10(c.tempo), api.C.red, 6);
           api.label(chart, rpm, L10(c.tempo) + 0.15, `${api.fmt(c.tempo, 0)} s`, api.C.red, "center", "bottom");
 
-          const sc = api.axes(api.second, 500, 6000, 0, P.centrifuge(6000, r).rcf * 1.05, "rotação (rpm)", "RCF = Ω²r/g");
+          const sc = api.axes(api.second, 500, 6000, 0, P.centrifuge(6000, r).rcf * 1.05, "rotação (rpm)", "RCF = ω²r/g");
           api.line(sc, api.curve((n) => P.centrifuge(n, r).rcf, 500, 6000, 120), api.C.blue);
           api.dot(sc, rpm, c.rcf, api.C.red, 4.5);
         },
@@ -394,12 +394,12 @@
             title: "Centrifugação de sangue",
             subtitle: `${api.fmt(rpm, 0)} rpm · r = ${api.fmt(v.secondary, 1)} cm · R = ${api.fmt(v.tertiary, 1)} μm · L = ${api.fmt(v.quaternary, 1)} cm`,
             regime: c.Re > 1 ? ["fora de Stokes", "alert"] : c.tempo < 120 ? ["sedimenta em menos de 2 min", "ok"] : c.tempo < 900 ? ["alguns minutos", "warn"] : ["lento: aumente rpm ou r", "alert"],
-            caption: "Com Δρ = 80 kg/m³ e η = 1,2·10⁻³ Pa·s, os valores do exemplo da hemácia. Sob gravidade a hemácia leva horas para percorrer 2 cm; a centrífuga multiplica a aceleração pelo RCF e o tempo cai na mesma proporção. A troca g → Ω²r vale no referencial do tubo, que gira com o rotor (Aula 10).",
+            caption: "Com Δρ = 80 kg/m³ e η = 1,2·10⁻³ Pa·s, os valores do exemplo da hemácia. Sob gravidade a hemácia leva horas para percorrer 2 cm; a centrífuga multiplica a aceleração pelo RCF e o tempo cai na mesma proporção. A troca g → ω²r vale no referencial do tubo, que gira com o rotor (Aula 10).",
             prediction: "Dobrar a rotação divide o tempo de sedimentação por 2 ou por 4?",
-            calculation: `Ω = 2π·${api.fmt(rpm, 0)}/60 = <b>${api.fmt(c.omega, 1)} rad/s</b> · Ω²r = ${api.fmt(c.a, 0)} m/s² = <b>${api.fmt(c.rcf, 0)} g</b><br>v = 2R²Δρ(Ω²r)/9η = <b>${api.sci(c.v)} m/s</b> contra ${api.sci(c.vg)} m/s sob gravidade<br>t = L/v = <b>${api.fmt(c.tempo, 1)} s</b> contra ${api.fmt(horas, 1)} h sob gravidade<em>Re = ${api.sci(c.Re)}: Stokes continua válido mesmo com a aceleração multiplicada</em>`,
+            calculation: `ω = 2π·${api.fmt(rpm, 0)}/60 = <b>${api.fmt(c.omega, 1)} rad/s</b> · ω²r = ${api.fmt(c.a, 0)} m/s² = <b>${api.fmt(c.rcf, 0)} g</b><br>v = 2R²Δρ(ω²r)/9η = <b>${api.sci(c.v)} m/s</b> contra ${api.sci(c.vg)} m/s sob gravidade<br>t = L/v = <b>${api.fmt(c.tempo, 1)} s</b> contra ${api.fmt(horas, 1)} h sob gravidade<em>Re = ${api.sci(c.Re)}: Stokes continua válido mesmo com a aceleração multiplicada</em>`,
             metrics: [
-              ["Ω", `${api.fmt(c.omega, 1)} rad/s`],
-              ["RCF = Ω²r/g", `${api.fmt(c.rcf, 0)} g`],
+              ["ω", `${api.fmt(c.omega, 1)} rad/s`],
+              ["RCF = ω²r/g", `${api.fmt(c.rcf, 0)} g`],
               ["v de sedimentação", `${api.sci(c.v)} m/s`],
               ["tempo para L na centrífuga", `${api.fmt(c.tempo, 1)} s`],
               ["tempo para L sob gravidade", `${api.fmt(horas, 2)} h`],
@@ -407,7 +407,7 @@
             ],
             concept: "Nada muda na física da esfera: a lei de Stokes é a mesma. Muda a aceleração efetiva, e é por isso que os protocolos de laboratório falam em RCF (g relativo), não em rpm, que só tem sentido junto com o raio do rotor.",
             prompts: [
-              "Exercício 1. A 3000 rpm e r = 10 cm, calcule Ω, o RCF e o tempo para uma hemácia percorrer 2 cm; compare com o tempo sob gravidade (é o Exercício 11 da nota).",
+              "Exercício 1. A 3000 rpm e r = 10 cm, calcule ω, o RCF e o tempo para uma hemácia percorrer 2 cm; compare com o tempo sob gravidade (é o Exercício 11 da nota).",
               "Exercício 2. Mostre que o tempo cai com 1/rpm²: dobrar a rotação divide o tempo por 4. Confira na curva.",
               "Exercício 3. Dois rotores dão o mesmo RCF com rpm diferentes se r for ajustado: ache o par (rpm, r) que reproduz 1000 g com r = 15 cm.",
               "Exercício 4. Para plaquetas (R ≈ 1,2 μm) o tempo é quanto maior? Use R² e explique por que o plasma rico em plaquetas é obtido com centrifugação mais branda.",
@@ -451,10 +451,12 @@
           const pts = [];
           for (let e = -2.4; e <= -0.4; e += 0.1) {
             const dt = Math.pow(10, e);
-            pts.push([e, Math.log10(Math.max(1e-12, P.eulerQuadratic(dt, tf, v.tertiary, v.secondary).erroMaximo))]);
+            const rr = P.eulerQuadratic(dt, tf, v.tertiary, v.secondary);
+            if (!rr.instavel) pts.push([e, Math.log10(Math.max(1e-12, rr.erroMaximo))]);
           }
           api.line(s, pts, api.C.blue);
-          api.dot(s, Math.log10(v.parameter), Math.log10(Math.max(1e-12, r.erroMaximo)), api.C.red, 4.5);
+          api.vline(s, Math.log10(r.dtEstavel), api.C.red, [4, 3], "Δt = √(m/gc)");
+          if (!r.instavel) api.dot(s, Math.log10(v.parameter), Math.log10(Math.max(1e-12, r.erroMaximo)), api.C.red, 4.5);
           const [ax, ay] = pts[4];
           api.line(s, [[ax, ay], [ax + 0.6, ay], [ax + 0.6, ay + 0.6]], api.C.gold, [4, 4], 1.5);
           api.label(s, ax + 0.62, ay + 0.32, "inclinação 1", api.C.gold, "left");
@@ -467,16 +469,20 @@
           return {
             title: "Euler explícito e a solução analítica",
             subtitle: `Δt = ${api.fmt(v.parameter, 3)} s · c = ${api.fmt(v.secondary)} kg/m · m = ${api.fmt(v.tertiary, 1)} kg`,
-            regime: r.erroMaximo < 0.01 ? ["erro abaixo de 1 %", "ok"] : r.erroMaximo < 0.05 ? ["erro visível", "warn"] : ["passo grande demais", "alert"],
+            regime: r.instavel ? ["instável: Δt > √(m/gc) — não é erro de truncamento", "alert"]
+              : r.erroMaximo < 0.01 ? ["erro abaixo de 1 %", "ok"] : r.erroMaximo < 0.05 ? ["erro visível", "warn"] : ["passo grande demais", "alert"],
             caption: "A curva verde é a solução em tanh; os pontos vermelhos são Euler. O painel secundário mostra que o erro cai proporcionalmente ao passo — primeira ordem.",
             prediction: "Metade do passo dá metade do erro, um quarto, ou a raiz?",
-            calculation: `v_T = √(mg/c) = √(${api.fmt(v.tertiary, 1)}·9,8/${api.fmt(v.secondary)}) = <b>${api.fmt(r.vT)} m/s</b><br>erro máximo com Δt = ${api.fmt(v.parameter, 3)} s: <b>${api.sci(r.erroMaximo)}</b><em>com Δt/2: ${api.sci(meio.erroMaximo)} — razão ${api.fmt(razao)}, próxima de 2</em>`,
+            calculation: r.instavel
+              ? `v_T = √(mg/c) = <b>${api.fmt(r.vT)} m/s</b><br>limiar de estabilidade: Δt < √(m/gc) = <b>${api.fmt(r.dtEstavel, 3)} s</b>, e aqui Δt = ${api.fmt(v.parameter, 3)} s<em>acima do limiar Euler explícito <b>diverge</b>: o que se vê não é erro de truncamento, é instabilidade absoluta</em>`
+              : `v_T = √(mg/c) = √(${api.fmt(v.tertiary, 1)}·9,8/${api.fmt(v.secondary)}) = <b>${api.fmt(r.vT)} m/s</b><br>erro máximo com Δt = ${api.fmt(v.parameter, 3)} s: <b>${api.sci(r.erroMaximo)}</b><em>com Δt/2: ${api.sci(meio.erroMaximo)} — razão ${api.fmt(razao)}, próxima de 2</em>`,
             metrics: [
               ["v_T", `${api.fmt(r.vT)} m/s`],
               ["passos", String(r.serie.length - 1)],
-              ["erro máximo", api.sci(r.erroMaximo)],
-              ["erro com Δt/2", api.sci(meio.erroMaximo)],
-              ["razão dos erros", api.fmt(razao)]
+              ["Δt de estabilidade", `${api.fmt(r.dtEstavel, 3)} s`],
+              ["erro máximo", r.instavel ? "diverge" : api.sci(r.erroMaximo)],
+              ["erro com Δt/2", meio.instavel ? "diverge" : api.sci(meio.erroMaximo)],
+              ["razão dos erros", r.instavel || meio.instavel ? "—" : api.fmt(razao)]
             ],
             concept: "Comparar duas resoluções é o único teste honesto de um resultado numérico: quem não faz o refinamento não sabe se o número significa algo.",
             prompts: [

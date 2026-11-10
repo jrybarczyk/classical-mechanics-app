@@ -137,7 +137,7 @@
               ["queda por ciclo", api.fmt(P.decayPerCycle(w0, g), 4)],
               ["amplitude após 3 ciclos", api.fmt(P.amplitudeAfter(3, w0, g), 4)]
             ],
-            concept: "A contração da área no espaço de fase é a assinatura geométrica da dissipação — e é exatamente o que o teorema de Liouville proíbe em sistemas hamiltonianos (Aula 29).",
+            concept: "A contração da área no espaço de fase é a assinatura geométrica da dissipação — e é exatamente o que o teorema de Liouville proíbe em sistemas hamiltonianos (Aula 28).",
             prompts: [
               "Verifique que a energia acompanha e^{−2βt} enquanto a amplitude acompanha e^{−βt}.",
               "Aumente β/ω₀ e conte quantas voltas a espiral consegue dar.",
@@ -158,7 +158,7 @@
         equation: "Q ≈ ω₀/2β   ·   amplitude após N ciclos = e^{−πN/Q}",
         hint: "Q baixo não é defeito. Veja o que ele compra em resolução axial.",
         controls: [
-          { id: "parameter", label: "fator de qualidade Q", min: 0.5, max: 40, step: 0.5, value: 3, digits: 1 },
+          { id: "parameter", label: "fator de qualidade Q", min: 1, max: 40, step: 0.5, value: 3, digits: 1 },
           { id: "secondary", label: "frequência do transdutor", min: 1, max: 15, step: 0.5, value: 5, digits: 1, unit: "MHz" },
           { id: "tertiary", label: "campo B₀ da ressonância", min: 0.2, max: 7, step: 0.1, value: 1.5, digits: 1, unit: "T" }
         ],
@@ -169,8 +169,8 @@
           const chart = api.axes(api.main, 0, 8, -1.15, 1.15, "número de ciclos", "amplitude relativa");
           const T = (2 * Math.PI) / P.omega1(w0, g);
           api.line(chart, api.curve((n) => P.position(n * T, 1, 0, w0, g), 0, 8, 500), api.C.green);
-          api.line(chart, api.curve((n) => P.amplitudeAfter(n, w0, g), 0, 8, 120), api.C.gold, [5, 4], 2);
-          api.line(chart, api.curve((n) => -P.amplitudeAfter(n, w0, g), 0, 8, 120), api.C.gold, [5, 4], 2);
+          api.line(chart, api.curve((n) => Math.exp(-g * T * n), 0, 8, 120), api.C.gold, [5, 4], 2);
+          api.line(chart, api.curve((n) => -Math.exp(-g * T * n), 0, 8, 120), api.C.gold, [5, 4], 2);
           api.hline(chart, 0, "#b9c4bb", []);
           api.hline(chart, 0.05, api.C.grayLight, [2, 3], "5 % da amplitude inicial");
           api.dot(chart, 1, P.amplitudeAfter(1, w0, g), api.C.red, 4.5);
@@ -178,8 +178,8 @@
           const s = api.axes(api.second, 0.5, 40, 0, P.axialResolution(40, v.secondary * 1e6) * 1000 * 1.1, "fator Q", "resolução axial (mm)");
           api.line(s, api.curve((q) => P.axialResolution(q, v.secondary * 1e6) * 1000, 0.5, 40, 120), api.C.blue);
           api.dot(s, v.parameter, P.axialResolution(v.parameter, v.secondary * 1e6) * 1000, api.C.red, 4.5);
-          api.vline(s, 4, api.C.gold, [5, 4], "faixa de imagem");
-          api.vline(s, 2, api.C.gold, [5, 4]);
+          api.vline(s, 3, api.C.gold, [5, 4], "faixa de imagem (Q ≈ 1–3)");
+          api.vline(s, 1, api.C.gold, [5, 4]);
         },
 
         text(v, api) {
@@ -210,7 +210,7 @@
               "Calcule quantas precessões cabem em um T₂ de 80 ms a 1,5 T e comente a ordem de grandeza.",
               "Explique por que a analogia entre T₂ e 1/β é formal, e não mecânica."
             ],
-            legend: [[api.C.green, "oscilação"], [api.C.gold, "e^{−πN/Q}"]],
+            legend: [[api.C.green, "oscilação"], [api.C.gold, "envoltória e^{−βt}"]],
             secondaryTitle: "Resolução axial contra Q",
             secondarySubtitle: "linear: pulso mais longo, resolução pior",
             secondaryCaption: "A faixa marcada é a usada em transdutores de imagem."

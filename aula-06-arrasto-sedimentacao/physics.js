@@ -33,19 +33,27 @@
    * Euler explícito para o arrasto quadrático, com o erro medido contra a
    * solução analítica em tanh. Devolve a série e o erro máximo relativo.
    */
+  /* Euler explicito em v' = g - (c/m)|v|v. Linearizando em torno de v_T o
+     autovalor e lambda = -2 g / v_T = -2 sqrt(gc/m), e a estabilidade exige
+     |1 + lambda*dt| < 1, isto e dt < dtEstavel = sqrt(m/(g c)). Acima disso o
+     metodo nao erra mais: ele diverge. Sinalizamos isso em vez de devolver
+     Infinity/NaN para a tela. */
   const eulerQuadratic = (dt, tFinal, m, c, g = G) => {
     const vT = terminalQuadratic(m, c, g);
+    const dtEstavel = Math.sqrt(m / (g * c));
     const serie = [[0, 0]];
     let v = 0;
     let erro = 0;
+    let instavel = dt >= dtEstavel;
     const n = Math.max(1, Math.round(tFinal / dt));
     for (let i = 1; i <= n; i += 1) {
       v += (dt / m) * (m * g - c * Math.abs(v) * v);
+      if (!Number.isFinite(v)) { instavel = true; break; }
       const t = i * dt;
       serie.push([t, v]);
       erro = Math.max(erro, Math.abs(v - vQuadratic(t, vT, g)) / vT);
     }
-    return { serie, erroMaximo: erro, vT };
+    return { serie, erroMaximo: erro, vT, dtEstavel, instavel };
   };
 
   /* --- arrasto linear com condição inicial arbitrária (Fig. 2.6 de Thornton–Marion) --- */
@@ -84,18 +92,18 @@
   const aerosolSettling = (d, rhoP, D, t, eta = ETA_AR, rhoF = RHO_AR, g = G) => {
     const R = d / 2;
     const vT = stokesTerminal(R, rhoP - rhoF, eta, g);
-    return { vT, tauP: stokesTau(R, rhoP, eta), Re: reynolds(rhoF, vT, d, eta),
+    return { vT, tauP: stokesTau(R, rhoP, eta), Re: reynolds(rhoF, vT, R, eta),
       tQueda: D / vT, fracao: Math.min(1, (vT * t) / D) };
   };
 
   /* --- física médica: centrifugação de sangue --- */
-  /** Ω em rad/s, aceleração centrífuga Ω²r e o "RCF" em múltiplos de g. */
+  /** ω em rad/s, aceleração centrífuga ω²r e o "RCF" em múltiplos de g. */
   const centrifuge = (rpm, r, g = G) => {
     const omega = (2 * Math.PI * rpm) / 60;
     const a = omega * omega * r;
     return { omega, a, rcf: a / g };
   };
-  /** Sedimentação de Stokes com g → Ω²r: tempo para percorrer L e Reynolds. */
+  /** Sedimentação de Stokes com g → ω²r: tempo para percorrer L e Reynolds. */
   const centrifugeSettling = (R, dRho, eta, rpm, r, L, rhoF = 1025) => {
     const c = centrifuge(rpm, r);
     const v = stokesTerminal(R, dRho, eta, c.a);

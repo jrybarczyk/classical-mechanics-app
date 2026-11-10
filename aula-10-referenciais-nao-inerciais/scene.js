@@ -54,17 +54,17 @@
             title: "Desvio para leste na queda livre",
             subtitle: `h = ${api.fmt(v.parameter, 0)} m · λ = ${api.fmt(v.secondary, 0)}° · ω = ${api.fmt(v.tertiary)} ω_Terra`,
             regime: Math.abs(v.secondary) > 84 ? ["desvio praticamente nulo", "alert"] : d > 0.05 ? ["desvio mensurável", "warn"] : ["desvio pequeno", "ok"],
-            caption: "O desvio é para leste nos dois hemisférios, porque depende de cosλ e não do sinal da latitude. A tracejada vermelha do painel abaixo é a correção de ordem ω².",
+            caption: "O desvio é para leste nos dois hemisférios, porque depende de cosλ e não do sinal da latitude. A tracejada vermelha do painel abaixo é a correção (relativa O(ω²), absoluta O(ω³)) de trocar g por g efetiva.",
             prediction: "O corpo desvia para o mesmo lado no hemisfério norte e no sul?",
-            calculation: `t = √(2h/g) = √(2·${api.fmt(v.parameter, 0)}/9,8) = <b>${api.fmt(t)} s</b><br>d = ⅓ωg t³cosλ = ⅓·${api.sci(w)}·9,8·${api.fmt(t ** 3)}·${api.fmt(Math.cos(P.rad(v.secondary)))} = <b>${api.fmt(d * 100)} cm</b><em>correção de ordem ω²: ${api.sci(oc.correcao)} m, ou ${api.fmt(oc.razao * 100, 3)} % do desvio</em>`,
+            calculation: `t = √(2h/g) = √(2·${api.fmt(v.parameter, 0)}/9,8) = <b>${api.fmt(t)} s</b><br>d = ⅓ωg t³cosλ = ⅓·${api.sci(w)}·9,8·${api.fmt(t ** 3)}·${api.fmt(Math.cos(P.rad(v.secondary)))} = <b>${api.fmt(d * 100)} cm</b><em>correção absoluta O(ω³): ${api.sci(oc.correcao)} m, ou ${api.fmt(oc.razao * 100, 3)} % do desvio (relativa O(ω²))</em>`,
             metrics: [
               ["tempo de queda", `${api.fmt(t)} s`],
               ["desvio para leste", `${api.fmt(d * 100)} cm`],
-              ["correção O(ω²)", `${api.sci(oc.correcao * 100)} cm`],
-              ["razão entre as ordens", `${api.fmt(oc.razao * 100, 3)} %`],
+              ["correção absoluta O(ω³)", `${api.sci(oc.correcao * 100)} cm`],
+              ["correção relativa O(ω²)", `${api.fmt(oc.razao * 100, 3)} %`],
               ["Coriolis / peso a 10 m/s", api.sci(P.coriolisToWeight(10, w))]
             ],
-            concept: "Coriolis é de primeira ordem em ω e a centrífuga é de segunda: é essa diferença de ordem, e não um argumento vago de pequenez, que autoriza desprezar uma delas.",
+            concept: "Coriolis dá um desvio de primeira ordem em ω; a centrífuga só corrige o resultado em segunda ordem relativa (O(ω²), absoluta O(ω³)): é essa diferença de ordem, e não um argumento vago de pequenez, que autoriza desprezar uma delas.",
             prompts: [
               "Confirme que dobrar h multiplica o desvio por 2√2, e explique de onde vem o expoente 3/2.",
               "Compare λ = +23° e λ = −23°. O sentido do desvio mudou?",
@@ -187,7 +187,7 @@
           return {
             title: "Ganho de uma centrífuga",
             subtitle: `${api.fmt(v.parameter, 0)} rpm · r = ${api.fmt(v.secondary, 3)} m`,
-            regime: ganho > 500 ? ["ultracentrífuga", "alert"] : ganho > 50 ? ["centrífuga clínica", "warn"] : ["ganho modesto", "ok"],
+            regime: ganho > 5000 ? ["alta velocidade (ultracentrífugas passam de 10⁵ g)", "alert"] : ganho > 500 ? ["centrífuga clínica", "warn"] : ["ganho modesto", "ok"],
             caption: "O ganho cresce com o quadrado da rotação e apenas linearmente com o raio: é por isso que se aumenta rpm antes de aumentar o rotor.",
             prediction: "Dobrar a rotação multiplica o ganho por quanto?",
             calculation: `ω = 2π·${api.fmt(v.parameter, 0)}/60 = <b>${api.fmt(w, 1)} rad/s</b><br>ganho = ω²r/g = ${api.fmt(w, 1)}²·${api.fmt(v.secondary, 3)}/9,8 = <b>${api.fmt(ganho, 0)} g</b><em>na Aula 6, v_T ∝ g: a sedimentação fica ${api.fmt(ganho, 0)} vezes mais rápida</em>`,
@@ -199,7 +199,7 @@
               ["inclinação do prumo", `${api.fmt(tilt * 3600, 0)} arcsec`],
               ["redução no equador", `${api.fmt(P.equatorialReduction() * 100, 3)} %`]
             ],
-            concept: "A centrífuga não é um truque: é a mesma força inercial que desloca a vertical aparente da Terra, usada com um ω milhares de vezes maior.",
+            concept: "A centrífuga não é um truque: é a mesma força inercial que desloca a vertical aparente da Terra, usada com um ω milhões de vezes maior.",
             prompts: [
               "Verifique que dobrar a rotação quadruplica o ganho, mas dobrar o raio apenas dobra.",
               "Ache a rotação necessária para obter 10 000 g com r = 10 cm.",

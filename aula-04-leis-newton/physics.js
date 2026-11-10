@@ -17,7 +17,8 @@
   /** Normal projetada no eixo perpendicular ao plano. */
   const normalForce = (m, alphaDeg, g = G) => m * g * Math.cos(rad(alphaDeg));
 
-  /** O bloco só desliza a partir do repouso se tanα > μ_s. */
+  /** O bloco só parte do repouso se tanα > μ_s. A aplicação adota μ_s = μ_k (um único μ);
+   no caso geral μ_s ≥ μ_k e o ângulo de repouso é arctan μ_s. */
   const slides = (alphaDeg, mu) => Math.tan(rad(alphaDeg)) > mu;
 
   /**
@@ -28,7 +29,7 @@
   const inclineFriction = (m, alphaDeg, mu, g = G) =>
     slides(alphaDeg, mu) ? mu * normalForce(m, alphaDeg, g) : m * g * Math.sin(rad(alphaDeg));
 
-  /** Ângulo de repouso: onde o deslizamento começa. */
+  /** Ângulo de repouso: onde o deslizamento começa (arctan μ_s, com μ_s = μ_k aqui). */
   const reposeAngle = (mu) => (Math.atan(mu) * 180) / Math.PI;
 
   /** Máquina de Atwood ideal: aceleração e tração. */

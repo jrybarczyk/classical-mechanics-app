@@ -152,7 +152,7 @@
         secondary: true,
 
         draw(api, v) {
-          const q = 1, m = 1;
+          const q = 1, m = 1;   /* q/m = 1 C/kg: ω_c = B (rad/s) e R = v/B (m) */
           const w = P.cyclotron(q, v.parameter, m);
           const T = (2 * Math.PI) / w;
           const R = P.gyroradius(m, v.tertiary, q, v.parameter);
@@ -180,14 +180,14 @@
         },
 
         text(v, api) {
-          const q = 1, m = 1;
+          const q = 1, m = 1;   /* q/m = 1 C/kg: ω_c = B (rad/s) e R = v/B (m) */
           const w = P.cyclotron(q, v.parameter, m);
           const R = P.gyroradius(m, v.tertiary, q, v.parameter);
           const d = P.driftSpeed(v.secondary, v.parameter);
           const semE = v.secondary === 0;
           return {
             title: "Trajetória em campos uniformes",
-            subtitle: `B = ${api.fmt(v.parameter)} T · E = ${api.fmt(v.secondary, 1)} V/m · v₀ = ${api.fmt(v.tertiary, 1)} m/s`,
+            subtitle: `B = ${api.fmt(v.parameter)} T · E = ${api.fmt(v.secondary, 1)} V/m · v₀ = ${api.fmt(v.tertiary, 1)} m/s · q/m = 1 C/kg`,
             regime: semE ? ["órbita fechada", "ok"] : ["ciclóide com deriva", "warn"],
             caption: "Com E = 0 a trajetória fecha e a rapidez é constante — o campo magnético não realiza trabalho. Ligar E acrescenta uma deriva perpendicular a ambos os campos.",
             prediction: "Ligando E, a partícula acelera indefinidamente na direção de E?",

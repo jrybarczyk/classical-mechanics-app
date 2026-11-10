@@ -80,7 +80,7 @@
         id: "quadratura",
         tab: "Rapidez e<br>período",
         heading: "Do potencial ao tempo",
-        equation: "ẋ = ±√(2[E − U(x)]/m)   T = 2∫dx/ẋ",
+        equation: "ẋ = ±√(2[E − U(x)]/m)   τ = 2∫dx/ẋ",
         hint: "Aproxime E de U₀ e acompanhe o período. Antes disso, preveja se ele cresce, cai ou satura.",
         controls: [
           { id: "parameter", label: "energia E/U₀", min: 0.01, max: 0.999, step: 0.001, value: 0.25, digits: 3 },
@@ -120,25 +120,25 @@
             regime: T > 1.5 * Th ? ["período muito acima do harmônico", "alert"] : T > 1.05 * Th ? ["anarmônico", "warn"] : ["quase harmônico", "ok"],
             caption: "A rapidez zera nos dois pontos de retorno e é máxima no fundo. O período é a área sob 1/ẋ — e é ela que diverge quando E se aproxima do topo.",
             prediction: "Com E tendendo a U₀, o período tende a um valor finito ou cresce sem limite?",
-            calculation: `ẋ(a) = √(2[E − U(a)]/m) = √(2·${api.fmt(E)}/${api.fmt(m)}) = <b>${api.fmt(P.speed(a, E, U0, a, m))} m/s</b><br>T = 2∫dx/ẋ entre ${api.fmt(seg[0])} e ${api.fmt(seg[1])} = <b>${api.fmt(T)} s</b><em>limite harmônico: 2π/ω₀ = 2π/√(8U₀/a²m) = ${api.fmt(Th)} s</em>`,
+            calculation: `ẋ(a) = √(2[E − U(a)]/m) = √(2·${api.fmt(E)}/${api.fmt(m)}) = <b>${api.fmt(P.speed(a, E, U0, a, m))} m/s</b><br>τ = 2∫dx/ẋ entre ${api.fmt(seg[0])} e ${api.fmt(seg[1])} = <b>${api.fmt(T)} s</b><em>limite harmônico: 2π/ω₀ = 2π/√(8U₀/a²m) = ${api.fmt(Th)} s</em>`,
             metrics: [
               ["rapidez máxima", `${api.fmt(P.speed(a, E, U0, a, m))} m/s`],
               ["retorno interno", `${api.fmt(seg[0])} m`],
               ["retorno externo", `${api.fmt(seg[1])} m`],
-              ["período T", `${api.fmt(T)} s`],
-              ["T harmônico", `${api.fmt(Th)} s`],
+              ["período τ", `${api.fmt(T)} s`],
+              ["τ₀ harmônico", `${api.fmt(Th)} s`],
               ["razão τ/τ₀", api.fmt(T / Th)]
             ],
             concept: "A conservação da energia devolve a rapidez em cada ponto e, por quadratura, o tempo — sem nunca resolver a equação de movimento.",
             prompts: [
-              "Verifique que T tende a 2π/ω₀ quando E → 0.",
-              "Quadruplique m e confirme que T dobra.",
+              "Verifique que τ tende a 2π/ω₀ quando E → 0.",
+              "Quadruplique m e confirme que τ dobra.",
               "Explique por que o período diverge ao aproximar E do topo da barreira."
             ],
             legend: [[api.C.green, "|ẋ|(x)"], [api.C.red, "pontos de retorno"], [api.C.gold, "fundo do poço"]],
             secondaryTitle: "Período contra energia",
             secondarySubtitle: "o oscilador harmônico é o platô à esquerda",
-            secondaryCaption: "A divergência à direita é a separatriz que a Aula 15 retoma."
+            secondaryCaption: "A divergência à direita é a separatriz que a Aula 14 retoma."
           };
         }
       },
@@ -274,7 +274,7 @@
             title: "Três tipos de equilíbrio num só potencial",
             subtitle: `ε = ${api.fmt(eps)} · E = ${api.fmt(E)} U₀ · x₀ = ${api.fmt(x0)} a`,
             regime,
-            caption: "O termo linear ε x/a desnivela os poços: o mais fundo é o equilíbrio estável global, o mais alto é metaestável e o máximo entre eles é instável. ΔU é a barreira que a partícula presa no poço metaestável precisa vencer para cair no outro, de onde, com a mesma energia, não volta.",
+            caption: "O termo linear ε x/a desnivela os poços: o mais fundo é o equilíbrio estável global, o mais alto é metaestável e o máximo entre eles é instável. ΔU é a barreira que a partícula presa no poço metaestável precisa vencer para alcançar o outro poço. Sem dissipação ela não fica lá: com E acima do topo percorre os dois poços e volta; só uma perda de energia a aprisionaria no poço fundo.",
             prediction: "Com ε > 0, qual dos dois poços fica metaestável? E se ε trocar de sinal?",
             calculation: `U′ = 0 ⟹ 4(x/a)[(x/a)² − 1] + ε = 0 ⟹ x ≃ ${eq.map((p) => api.fmt(p.x)).join(" ; ")}<br>U″ = (4U₀/a²)(3x²/a² − 1): ${eq.map((p) => `${api.fmt(p.Upp, 1)} (${p.tipo})`).join(" · ")}<br>barreira do poço metaestável ΔU = U(x_máx) − U(x_meta) = <b>${Number.isFinite(b.meta) ? api.fmt(b.meta) : "—"} U₀</b> (≈ U₀(1 − |ε|) = ${api.fmt(1 - Math.abs(eps))})<em>diferença entre os poços U_meta − U_est = ${Number.isFinite(b.diferenca) ? api.fmt(b.diferenca) : "—"} U₀ ≈ 2|ε|U₀ = ${api.fmt(2 * Math.abs(eps))}</em>`,
             metrics: [
@@ -290,7 +290,7 @@
             prompts: [
               "Exercício 1. Com ε = 0,3, classifique os três equilíbrios pelo sinal de U″ e confira com a cor dos pontos.",
               "Exercício 2. Ponha x₀ = 0,96 (fundo do poço metaestável) e suba E a partir de U(x₀): em que E a partícula escapa? Compare com ΔU + U(x₀).",
-              "Exercício 3. Com E entre os dois mínimos mais a barreira, mostre que a partícula que escapou do poço metaestável fica confinada no estável e não volta.",
+              "Exercício 3. Com E acima do topo da barreira, mostre que a partícula percorre os dois poços e volta ao metaestável: sem dissipação não existe faixa de E em que ela fique confinada no poço estável. O que seria preciso acrescentar para isso?",
               "Exercício 4. Leve ε a zero e explique por que, com os poços nivelados, não há metaestabilidade; depois troque o sinal de ε e veja os papéis se inverterem.",
               "Exercício 5. Um canal iônico tem estados fechado e aberto como dois poços; o potencial de membrana faz o papel de ε. Que sinal de ε favorece o estado aberto se ele for o poço da direita?"
             ],
@@ -303,7 +303,7 @@
         id: "quadril",
         tab: "Física médica:<br>queda e fratura",
         heading: "Queda sobre o quadril",
-        equation: "E = m_ef g h = ½m_ef v²<br>impacto: F̄·d = m_ef g h ⟹ F̄ = m_ef g h/d<br>(Δ(T+U) = W_nc, com W_nc = −F̄ d)",
+        equation: "E = m_ef g h = ½m_ef v²<br>impacto: Δ(T+U) = W_nc ⟹ F̄·d = m_ef g h ⟹ F̄ = m_ef g h/d<br>(refinamento: do repouso ao repouso o corpo ainda desce d, F̄ = m_ef g (h + d)/d; correção d/h)",
         hint: "Só a massa efetiva (pelve e tronco, cerca de um terço do corpo) é freada no quadril; o resto desacelera depois. A energia está decidida por h; o que o protetor muda é d. Preveja se dobrar d divide a força por dois.",
         controls: [
           { id: "parameter", label: "altura de queda do quadril h", min: 0.3, max: 1.2, step: 0.01, value: 0.7, digits: 2, unit: "m" },
@@ -345,7 +345,7 @@
             regime: fratura ? ["força média acima do limiar", "alert"] : ["abaixo do limiar", "ok"],
             caption: "A energia que chega ao quadril é m_ef g h, com a massa efetiva que de fato é freada ali (o resto do corpo desacelera depois, por outras vias). O que o tecido mole, um protetor de quadril ou um piso macio fazem é alongar a distância d em que essa energia é absorvida, dividindo a força média. Em quedas reais medem-se picos de 2,5 a 8 kN; o limiar de fratura do colo do fêmur varia de 2 a 6 kN com a densidade óssea.",
             prediction: "Dobrar a distância de frenagem d dobra, divide por dois ou não altera a força média no impacto?",
-            calculation: `E = m_ef g h = ${api.fmt(m, 0)}·9,8·${api.fmt(h)} = <b>${api.fmt(q.E, 0)} J</b> · v = √(2gh) = <b>${api.fmt(q.v)} m/s</b><br>Δ(T+U) = W_nc ⟹ 0 − m_ef g h = −F̄ d ⟹ F̄ = m_ef g h/d = ${api.fmt(q.E, 0)}/${api.fmt(d, 3)} = <b>${api.fmt(q.Fmed / 1000, 2)} kN</b><em>desaceleração média ${api.fmt(q.decel / 9.8, 0)} g; para ficar no limiar seria preciso d ≥ ${api.fmt(dReq * 100, 1)} cm, ou h ≤ ${api.fmt(hc, 2)} m</em>`,
+            calculation: `E = m_ef g h = ${api.fmt(m, 0)}·9,8·${api.fmt(h)} = <b>${api.fmt(q.E, 0)} J</b> · v = √(2gh) = <b>${api.fmt(q.v)} m/s</b><br>Δ(T+U) = W_nc ⟹ m_ef g h = F̄ d ⟹ F̄ = m_ef g h/d = <b>${api.fmt(q.Fmed / 1000, 2)} kN</b><em>desaceleração média ${api.fmt(q.decel / 9.8, 0)} g; para ficar no limiar seria preciso d ≥ ${api.fmt(dReq * 100, 1)} cm, ou h ≤ ${api.fmt(hc, 2)} m</em>`,
             metrics: [
               ["energia no impacto m_ef g h", `${api.fmt(q.E, 0)} J`],
               ["velocidade ao tocar", `${api.fmt(q.v)} m/s`],

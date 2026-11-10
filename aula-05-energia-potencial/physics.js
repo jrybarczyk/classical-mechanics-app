@@ -1,7 +1,7 @@
 /* Aula 5 — movimento retilíneo, trabalho e energia. Funções puras.
    O potencial escolhido é o poço duplo U(x) = U₀(x²/a² − 1)², o mesmo da figura
    da aula, porque ele exibe de uma só vez mínimo, máximo, pontos de retorno e a
-   separatriz retomada na Aula 15. */
+   separatriz retomada na Aula 14. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
@@ -54,7 +54,7 @@
   };
 
   /**
-   * Período por quadratura: T = 2∫dx/v entre os pontos de retorno.
+   * Período por quadratura: τ = 2∫dx/v entre os pontos de retorno.
    * O integrando diverge como 1/√ nas extremidades, então usa-se a substituição
    * x = c + R·sen u, que cancela exatamente essa singularidade, e Simpson em u.
    */
@@ -117,7 +117,8 @@
     pts.forEach((p) => {
       if (p.Upp < 0) p.tipo = "instavel";
       else if (Math.abs(p.Upp) < 1e-9) p.tipo = "indiferente";
-      else p.tipo = p === minimos[0] ? "estavel" : "metaestavel";
+      /* Minimos degenerados (eps = 0) sao ambos estaveis: nao ha metaestabilidade. */
+      else p.tipo = (minimos.length && Math.abs(p.U - minimos[0].U) < 1e-9) ? "estavel" : "metaestavel";
       p.omega = p.Upp > 0 ? Math.sqrt(p.Upp) : 0;   // por unidade de √m
     });
     return pts.sort((p, q) => p.x - q.x);
@@ -144,13 +145,19 @@
    * Queda da altura h do centro de massa: U = mgh vira T; no impacto, a força
    * média que freia o corpo na distância d sai de F̄·d = mgh (Δ(T+U) = W_nc).
    */
+  /* Modelo da aula: F̄ d = m g h (a energia m g h é absorvida em d). Refinamento:
+     do repouso ao repouso o corpo ainda desce d durante a frenagem, e o balanço
+     fica F̄ d = m g (h + d); a correção relativa é d/h (≈ 4 % para d = 3 cm, h = 0,7 m)
+     e está em fallImpactRefined. */
   const fallImpact = (m, h, d, g = 9.8) => {
     const E = m * g * h;
-    return { E, v: Math.sqrt(2 * g * h), Fmed: E / d, decel: (2 * g * h) / (2 * d) };
+    return { E, v: Math.sqrt(2 * g * h), Fmed: E / d, decel: (g * h) / d };
   };
-  /** Altura a partir da qual a força média ultrapassa o limiar F_lim, para dado d. */
+  /** Refinamento: F̄ = m g (h + d)/d. */
+  const fallImpactRefined = (m, h, d, g = 9.8) => (m * g * (h + d)) / d;
+  /** Altura a partir da qual a força média ultrapassa o limiar F_lim, para dado d: h_c = F_lim d/(m g). */
   const criticalHeight = (Flim, m, d, g = 9.8) => (Flim * d) / (m * g);
-  /** Distância de frenagem necessária para ficar no limiar. */
+  /** Distância de frenagem necessária para ficar no limiar: d = m g h/F_lim. */
   const requiredCushion = (Flim, m, h, g = 9.8) => (m * g * h) / Flim;
 
   /* ---------------------------------------------------------------- */
@@ -171,5 +178,5 @@
 
   return { U, force, Upp, turningPoints, confined, speed, excursion, period, omegaSmall,
     tiltedU, tiltedForce, tiltedUpp, equilibria, barrier,
-    fallImpact, criticalHeight, requiredCushion, MMHG, cardiacWork, cardiacPower };
+    fallImpact, fallImpactRefined, criticalHeight, requiredCushion, MMHG, cardiacWork, cardiacPower };
 });

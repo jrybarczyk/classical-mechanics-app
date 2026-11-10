@@ -9,11 +9,11 @@
   const omega0 = (k, m) => Math.sqrt(k / m);
   const period = (w) => (2 * Math.PI) / w;
 
-  /** x = A cos(ωt + φ), com A e φ fixados por x(0) = x₀ e ẋ(0) = v₀. */
+  /** x = A cos(ωt − δ) (convenção de Marion), com A e δ fixados por x(0) = x₀ e ẋ(0) = v₀. */
   const amplitude = (x0, v0, w) => Math.hypot(x0, v0 / w);
-  const phase = (x0, v0, w) => Math.atan2(-v0 / w, x0);
-  const position = (t, x0, v0, w) => amplitude(x0, v0, w) * Math.cos(w * t + phase(x0, v0, w));
-  const velocity = (t, x0, v0, w) => -amplitude(x0, v0, w) * w * Math.sin(w * t + phase(x0, v0, w));
+  const phase = (x0, v0, w) => Math.atan2(v0 / w, x0);
+  const position = (t, x0, v0, w) => amplitude(x0, v0, w) * Math.cos(w * t - phase(x0, v0, w));
+  const velocity = (t, x0, v0, w) => -amplitude(x0, v0, w) * w * Math.sin(w * t - phase(x0, v0, w));
 
   const energy = (x0, v0, w, m) => 0.5 * m * (v0 * v0 + w * w * x0 * x0);
   const kinetic = (t, x0, v0, w, m) => 0.5 * m * velocity(t, x0, v0, w) ** 2;

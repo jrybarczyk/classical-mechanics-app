@@ -285,11 +285,15 @@
           const alc = P.horizontalLimit(v0x, tau);
           const tq = P.fallTime(H, v0y, tau);
           const est = P.settlingTime(H, vT);
+          /* Reynolds da esfera com o diametro: acima de ~1 o arrasto linear
+             de Stokes ja superestima a velocidade terminal. */
+          const Re = (1.2 * vT * 2 * R) / 1.8e-5;
           const balistica = alc > 0.5;
           return {
             title: "Trajetória de uma gotícula expelida",
             subtitle: `R = ${api.fmt(v.parameter, 0)} µm (diâmetro ${api.fmt(2 * v.parameter, 0)} µm) · v₀ = ${api.fmt(v.secondary, 1)} m/s`,
-            regime: balistica ? ["gotícula: cai perto de quem falou", "warn"] : ["aerossol: fica suspenso", "alert"],
+            regime: Re > 1 ? ["fora de Stokes: Re > 1, o modelo linear superestima v_T", "alert"]
+              : balistica ? ["gotícula: cai perto de quem falou", "warn"] : ["aerossol: fica suspenso", "alert"],
             caption: "A curva cinza é a mesma ejeção sem arrasto. Para gotícula grande as duas ainda se parecem; para gotícula fina o arrasto vence em milésimos de segundo e a trajetória vira uma queda vertical.",
             prediction: "Dividir o raio por dez divide o alcance por quanto?",
             calculation: `τ = 2ρR²/9η = 2·1000·(${api.sci(R, 2)})²/(9·1,8·10⁻⁵) = <b>${api.sci(tau, 3)} s</b><br>alcance balístico = τ·v₀ₓ = <b>${api.sci(alc, 3)} m</b><br>v_T = gτ = <b>${api.sci(vT, 3)} m/s</b><em>tempo para cair 1,5 m: ${api.fmt(tq, 2)} s (estimativa terminal h/v_T = ${api.fmt(est, 2)} s; no vácuo seriam 0,55 s)</em>`,
@@ -299,7 +303,7 @@
               ["velocidade terminal", `${api.sci(vT, 3)} m/s`],
               ["tempo de queda exato", `${api.fmt(tq, 2)} s`],
               ["estimativa h/v_T", `${api.fmt(est, 2)} s`],
-              ["alcance sem arrasto", `${api.fmt(P.vacuumRange(v.secondary, v.tertiary), 2)} m`]
+              ["Reynolds", api.fmt(Re, 2)]
             ],
             concept: "Como τ vai com R², dividir o raio por dez divide o alcance e a velocidade terminal por cem. É essa única potência que separa dois regimes de transmissão respiratória: gotículas de 100 µm de diâmetro caem em cerca de 5 s e a menos de meio metro, enquanto as de 10 µm levam oito minutos para descer 1,5 m e praticamente não avançam — ficam suspensas e são carregadas pelo ar da sala. A distância de segurança faz sentido contra as primeiras; contra as segundas, o que importa é ventilação.",
             prompts: [
@@ -400,12 +404,9 @@
               ["distância horizontal d", `${api.fmt(r.d, 2)} m`],
               ["tempo de voo", `${api.fmt(r.t, 2)} s`],
               ["ângulo de impacto β", `${api.fmt(r.betaGraus, 1)}°`],
-              ["w/ℓ da mancha", api.fmt(r.razaoWL, 2)],
               ["altura por linha reta", `${api.fmt(hReta, 2)} m`],
               ["razão h_reta/h", api.fmt(hReta / v.secondary, 2)],
-              ["v_T da gota (quadrático)", `${api.fmt(vT, 1)} m/s`],
-              ["⟨v²⟩/v_T² (arrasto médio / g)", api.fmt(arrasto, 2)],
-              ["β no padrão (mais perto → mais longe)", `${api.fmt(P.spatterPattern(v.parameter, v.tertiary, v.secondary, 26).reduce((m, q) => Math.max(m, q.betaGraus), 0), 0)}° → ${api.fmt(P.spatterPattern(v.parameter, v.tertiary, v.secondary, 26).reduce((m, q) => Math.min(m, q.betaGraus), 90), 0)}°`]
+              ["⟨v²⟩/v_T² (arrasto médio / g)", api.fmt(arrasto, 2)]
             ],
             concept: "A mancha é uma elipse porque a gota, esférica em voo, atinge a superfície obliquamente: a largura w conserva o diâmetro e o comprimento ℓ é alongado por 1/sin β. Medir w/ℓ devolve o ângulo de impacto, e a direção da cauda devolve o sentido do movimento. Prolongando várias linhas retas até o ponto de convergência o perito estima a origem, mas a gota viaja numa parábola: a reta tangente no impacto passa acima da origem real. Para lançamento horizontal o erro é exato e grande, h_reta = 2h, porque tan β = gt/v₀ e d = v₀t dão d·tan β = gt² = 2h. O método é bom para a posição horizontal e sistematicamente alto para a altura; a perícia moderna corrige isso justamente com a parábola desta aula.",
             prompts: [
@@ -477,10 +478,8 @@
             metrics: [
               ["velocidade do jato u", `${api.fmt(u, 3)} m/s`],
               ["alcance x", `${api.fmt(x, 3)} m`],
-              ["tempo de queda", `${api.fmt(t, 2)} s`],
               ["Reynolds no cateter", api.fmt(Re, 0)],
               ["gotas por minuto", api.fmt(g.gotasPorMin, 1)],
-              ["intervalo entre gotas", `${api.fmt(g.intervalo, 2)} s`],
               ["gotas em voo ao mesmo tempo", api.fmt(tq / g.intervalo, 2)],
               ["Q recuperado de x (inverso)", `${api.fmt(P.flowFromRange(x, H, d) * 60e6, 1)} mL/min`]
             ],
@@ -503,11 +502,11 @@
         id: "eletron",
         tab: "Acelerador:<br>elétron defletido",
         heading: "O elétron entre placas é um projétil com g → eE/m",
-        equation: "y = ½(eE/m)(L/v)² = U L²/(4 V d) · tan θ = 2y/L · r = mv/(eB)",
-        hint: "Dobre a tensão aceleradora V: o elétron fica mais rápido e a deflexão cai pela metade, independentemente de e/m.",
+        equation: "y = ½(eE/m)(L/v)² = V_placas L²/(4 V_ac d) · tan θ = 2y/L · r = mv/(eB)",
+        hint: "Dobre a tensão aceleradora V_ac: o elétron fica mais rápido e a deflexão cai pela metade, independentemente de e/m.",
         controls: [
-          { id: "parameter", label: "tensão aceleradora V", min: 0.2, max: 5, step: 0.1, value: 1, digits: 1, unit: "kV" },
-          { id: "secondary", label: "tensão nas placas U", min: -300, max: 300, step: 10, value: 100, digits: 0, unit: "V" },
+          { id: "parameter", label: "tensão aceleradora V_ac", min: 0.2, max: 5, step: 0.1, value: 1, digits: 1, unit: "kV" },
+          { id: "secondary", label: "tensão nas placas V_placas", min: -300, max: 300, step: 10, value: 50, digits: 0, unit: "V" },
           { id: "tertiary", label: "comprimento das placas L", min: 2, max: 10, step: 0.5, value: 5, digits: 1, unit: "cm" },
           { id: "quaternary", label: "campo magnético B", min: 0.2, max: 5, step: 0.1, value: 1, digits: 1, unit: "mT" }
         ],
@@ -548,26 +547,25 @@
           const B = v.quaternary * 1e-3, rb = P.magneticRadius(r.v, B), ac = r.v * r.v / rb;
           return {
             title: "O elétron entre placas é um projétil com g → eE/m",
-            subtitle: `V = ${api.fmt(v.parameter, 1)} kV · U = ${api.fmt(U, 0)} V (d = 1 cm) · L = ${api.fmt(v.tertiary, 1)} cm · B = ${api.fmt(v.quaternary, 1)} mT`,
-            regime: r.v / P.C_LUZ < 0.1 ? ["clássico: v/c < 0,1", "ok"] : ["v/c > 0,1: início das correções relativísticas", "warn"],
-            caption: "Verde: dentro das placas o elétron descreve uma parábola, exatamente como um projétil, e depois segue em linha reta até a tela. A tensão U faz o papel da gravidade; a tensão V, o da velocidade de lançamento.",
-            prediction: "Se V dobrar, a deflexão na tela cai para quanto? Depende da carga ou da massa do elétron?",
-            calculation: `v = √(2eV/m) = <b>${api.sci(r.v, 3)} m/s</b> (v/c = ${api.fmt(r.v / P.C_LUZ, 3)})<br>a = eE/m = eU/(md) = <b>${api.sci(r.a, 3)} m/s²</b> = ${api.sci(r.a / P.G, 2)} g<br>y = ½a(L/v)² = UL²/(4Vd) = <b>${api.fmt(r.y * 1e3, 2)} mm</b> · tan θ = 2y/L = ${api.fmt(r.tanTheta, 4)} · Y = y + D·tan θ = <b>${api.fmt(r.Y * 1e3, 1)} mm</b><em>no campo B: r = mv/(eB) = ${api.fmt(rb * 100, 2)} cm; a_c = v²/r = ${api.sci(ac, 2)} m/s²</em>`,
+            subtitle: `V_ac = ${api.fmt(v.parameter, 1)} kV · V_placas = ${api.fmt(U, 0)} V (d = 1 cm) · L = ${api.fmt(v.tertiary, 1)} cm · B = ${api.fmt(v.quaternary, 1)} mT`,
+            regime: Math.abs(r.y) > d / 2 ? ["o feixe colide com a placa: |y| > d/2", "alert"]
+              : r.v / P.C_LUZ < 0.1 ? ["clássico: v/c < 0,1", "ok"] : ["v/c > 0,1: início das correções relativísticas", "warn"],
+            caption: "Verde: dentro das placas o elétron descreve uma parábola, exatamente como um projétil, e depois segue em linha reta até a tela. A tensão V_placas faz o papel da gravidade; a tensão V_ac, o da velocidade de lançamento.",
+            prediction: "Se V_ac dobrar, a deflexão na tela cai para quanto? Depende da carga ou da massa do elétron?",
+            calculation: `v = √(2eV/m) = <b>${api.sci(r.v, 3)} m/s</b> (v/c = ${api.fmt(r.v / P.C_LUZ, 3)})<br>a = eE/m = eV_placas/(md) = <b>${api.sci(r.a, 3)} m/s²</b> = ${api.sci(r.a / P.G, 2)} g<br>y = ½a(L/v)² = V_placas L²/(4 V_ac d) = <b>${api.fmt(r.y * 1e3, 2)} mm</b> · tan θ = 2y/L = ${api.fmt(r.tanTheta, 4)} · Y = y + D·tan θ = <b>${api.fmt(r.Y * 1e3, 1)} mm</b><em>no campo B: r = mv/(eB) = ${api.fmt(rb * 100, 2)} cm; a_c = v²/r = ${api.sci(ac, 2)} m/s²</em>`,
             metrics: [
               ["rapidez v", `${api.sci(r.v, 3)} m/s`],
               ["v/c", api.fmt(r.v / P.C_LUZ, 3)],
-              ["aceleração eE/m", `${api.sci(r.a, 2)} m/s²`],
-              ["tempo entre as placas", `${api.sci(L / r.v, 2)} s`],
               ["deflexão na saída y", `${api.fmt(r.y * 1e3, 2)} mm`],
               ["ângulo de saída θ", `${api.fmt(r.thetaGraus, 2)}°`],
               ["deflexão na tela (D = 20 cm)", `${api.fmt(r.Y * 1e3, 1)} mm`],
               ["raio em B", `${api.fmt(rb * 100, 2)} cm`]
             ],
-            concept: "Um campo elétrico uniforme exerce força constante, logo o movimento do elétron é o do projétil desta aula com g substituído por eE/m: trajetória parabólica, componentes independentes, tempo de voo L/v fixado pela componente paralela. Como a energia cinética vem da mesma carga, ½mv² = eV, a razão e/m cancela e a deflexão y = UL²/(4Vd) só depende de geometria e tensões: é a física do tubo de raios catódicos e das placas de varredura. O campo magnético, ao contrário, faz força perpendicular à velocidade e não muda o módulo: o elétron descreve um círculo de raio r = p/(eB), e é esse o princípio do ímã defletor de 270° de um acelerador linear clínico, onde p é relativístico (6 MeV/c dá r ≈ 4 cm em 0,5 T) mas a cinemática polar da aula, a_c = v²/r, continua exata.",
+            concept: "Um campo elétrico uniforme exerce força constante, logo o movimento do elétron é o do projétil desta aula com g substituído por eE/m: trajetória parabólica, componentes independentes, tempo de voo L/v fixado pela componente paralela. Como a energia cinética vem da mesma carga, ½mv² = eV_ac, a razão e/m cancela e a deflexão y = V_placas L²/(4 V_ac d) só depende de geometria e tensões: é a física do tubo de raios catódicos e das placas de varredura. O campo magnético, ao contrário, faz força perpendicular à velocidade e não muda o módulo: o elétron descreve um círculo de raio r = p/(eB), e é esse o princípio do ímã defletor de 270° de um acelerador linear clínico, onde p é relativístico (6 MeV/c dá r ≈ 4 cm em 0,5 T) mas a cinemática polar da aula, a_c = v²/r, continua exata.",
             prompts: [
-              "Dobre V e confirme que Y cai pela metade; dobre L e confirme que y quadruplica (e Y não).",
-              "Inverta o sinal de U: o que muda na figura e o que não muda?",
-              "Com V = 5 kV e B = 1 mT, meça r; depois estime r para um elétron de 6 MeV num ímã de 0,5 T usando p = 6,5 MeV/c."
+              "Dobre V_ac e confirme que Y cai pela metade; dobre L e confirme que y quadruplica (e Y não).",
+              "Inverta o sinal de V_placas: o que muda na figura e o que não muda?",
+              "Com V_ac = 5 kV e B = 1 mT, meça r; depois estime r para um elétron de 6 MeV num ímã de 0,5 T usando p = 6,5 MeV/c."
             ],
             legend: [[api.C.green, "trajetória do elétron"], [api.C.ink, "placas defletoras"], [api.C.violet, "arco no campo B"]],
             secondaryTitle: "O mesmo elétron num campo magnético",

@@ -11,7 +11,7 @@
     ["gota de névoa", 2e-5, 1e-2],
     ["aorta", 2.5e-2, 0.3],
     ["nadador", 1.8, 1.2],
-    ["bola de tênis", 6.7e-2, 30]
+    ["bola de tênis", 6.7e-2, 25]
   ];
 
   window.LessonScene = {
@@ -88,7 +88,7 @@
             metrics: [
               ["Re do (L, v) escolhido", api.sci(Re)],
               ["Re da hemácia (8 μm, 1 mm/s)", api.sci(P.reynolds(v.tertiary, 1e-3, 8e-6, v.secondary))],
-              ["Re da bola de tênis (6,7 cm, 30 m/s)", api.sci(P.reynolds(v.tertiary, 30, 6.7e-2, v.secondary))],
+              ["Re da bola de tênis (6,7 cm, 25 m/s)", api.sci(P.reynolds(v.tertiary, 25, 6.7e-2, v.secondary))],
               ["L para Re = 1", `${api.sci(L1)} m`],
               ["L para Re = 10³", `${api.sci(L1000)} m`],
               ["regime de arrasto", regime === "linear" ? "linear" : regime === "quadratico" ? "quadrático" : "transição"]
@@ -219,7 +219,7 @@
             const e = P.kineticError(Math.pow(10, lv));
             return e <= 0 ? -18 : Math.max(-18, L10(e));
           }, 0, 8.45, 220), api.C.blue);
-          api.hline(s, L10(v.secondary), api.C.gold, [6, 4], "tolerância aceita");
+          api.hline(s, L10(P.energyErrorAtVelocityTolerance(v.secondary)), api.C.gold, [6, 4], "tolerância na velocidade, em erro de energia (≈ 2×)");
           api.vline(s, L10(P.C_LIGHT), api.C.red, [4, 4], "c");
           const marcas = [["automóvel", 30], ["satélite baixo", 7660], ["próton de 200 MeV", 1.7e8]];
           marcas.forEach(([nome, vel]) => {

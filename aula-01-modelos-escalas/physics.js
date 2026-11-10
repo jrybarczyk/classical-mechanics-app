@@ -140,6 +140,21 @@
   /** Erro relativo da velocidade clássica em relação à relativística. */
   const betaError = (T, mc2 = MC2_ELECTRON_KEV) => betaClassical(T, mc2) / betaRelativistic(T, mc2) - 1;
 
+  /**
+   * Erro de ½mv² (kineticError) no ponto em que o erro na VELOCIDADE (betaError)
+   * vale `tol`. As duas medidas diferem por um fator ≈ 2 (3β²/4 contra 3β²/8),
+   * e o painel inferior da estação 3 traça a tolerância na escala da energia.
+   */
+  const energyErrorAtVelocityTolerance = (tol, mc2 = MC2_ELECTRON_KEV) => {
+    let lo = 0, hi = 1e6 * mc2;
+    for (let i = 0; i < 200; i += 1) {
+      const mid = (lo + hi) / 2;
+      if (betaError(mid, mc2) < tol) lo = mid; else hi = mid;
+    }
+    const T = (lo + hi) / 2;
+    return kineticError(betaRelativistic(T, mc2) * C_LIGHT);
+  };
+
   /** Momento relativístico do elétron (kg·m/s) para energia cinética T em keV. */
   const electronMomentum = (TkeV) => {
     const g = 1 + TkeV / MC2_ELECTRON_KEV;
@@ -154,6 +169,6 @@
 
   return { C_LIGHT, H_PLANCK, HBAR, M_ELECTRON, MC2_ELECTRON_KEV,
     galileoDrop, galileoRange, stopTime, stopDistance, braking,
-    betaClassical, betaRelativistic, betaError, electronMomentum, deBroglie, actionRatio,
+    betaClassical, betaRelativistic, betaError, electronMomentum, energyErrorAtVelocityTolerance, deBroglie, actionRatio,
     reynolds, dragRegime, reynoldsLength, fallDimensions, dimensionError, fallTime, lorentz, kineticError, velocityForKineticError };
 });

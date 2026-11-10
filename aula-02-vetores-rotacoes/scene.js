@@ -7,7 +7,7 @@
   /* Vetores fixos da estação de identidade vetorial. */
   const Bv = [0, 3, 2];
   const Cv = [-2, 1, 4];
-  /* Vetor extra da estação indicial, escolhido para que nenhuma componente se anule. */
+  /* Vetor extra da estação indicial, com todas as componentes não nulas (b = (0; 3; 2) tem b₁ = 0, então no mapa uma parcela com ε ≠ 0 pode valer 0). */
   const Av = [1, 2, -1];
 
   window.LessonScene = {

@@ -17,8 +17,8 @@
         id: "condicoes",
         tab: "Amplitude<br>e fase",
         heading: "Do dado inicial à solução",
-        equation: "x = A cos(ω₀t + φ)   A = √(x₀² + (v₀/ω₀)²)",
-        hint: "Use x₀ e v₀ juntos para achar o quadrante de φ. Um só deles não basta.",
+        equation: "x = A cos(ω₀t − δ)   A = √(x₀² + (v₀/ω₀)²)",
+        hint: "Use x₀ e v₀ juntos para achar o quadrante de δ. Um só deles não basta.",
         controls: [
           { id: "parameter", label: "posição inicial x₀", min: -0.3, max: 0.3, step: 0.005, value: 0.1, digits: 3, unit: "m" },
           { id: "secondary", label: "velocidade inicial v₀", min: -1.5, max: 1.5, step: 0.01, value: 0.3, digits: 2, unit: "m/s" },
@@ -40,10 +40,10 @@
           /* Tangente inicial: a inclinação é v₀. */
           api.line(chart, [[0, v.parameter], [T * 0.22, v.parameter + v.secondary * T * 0.22]], api.C.blue, [5, 4], 2);
           api.label(chart, T * 0.24, v.parameter + v.secondary * T * 0.22, "inclinação v₀", api.C.blue, "left");
-          const tPico = (-P.phase(v.parameter, v.secondary, w)) / w;
+          const tPico = P.phase(v.parameter, v.secondary, w) / w;
           const tp = tPico < 0 ? tPico + T : tPico;
           api.dot(chart, tp, A, api.C.gold, 4.5, true);
-          api.label(chart, tp, A * 1.1, "−φ/ω₀", api.C.gold, "center");
+          api.label(chart, tp, A * 1.1, "δ/ω₀", api.C.gold, "center");
 
           const s = api.axes(api.second, -A * 1.3, A * 1.3, -A * w * 1.3, A * w * 1.3, "x (m)", "v (m/s)");
           api.line(s, api.param((t) => [P.position(t, v.parameter, v.secondary, w), P.velocity(t, v.parameter, v.secondary, w)], 0, T, 220), api.C.green);
@@ -55,25 +55,25 @@
           const m = 0.5;
           const w = P.omega0(v.tertiary, m);
           const A = P.amplitude(v.parameter, v.secondary, w);
-          const phi = P.phase(v.parameter, v.secondary, w);
+          const delta = P.phase(v.parameter, v.secondary, w);
           return {
             title: "Solução determinada pelos dados iniciais",
             subtitle: `k = ${api.fmt(v.tertiary, 1)} N/m · m = 0,50 kg · ω₀ = ${api.fmt(w)} rad/s`,
             caption: "A elipse de fase é fechada: a energia não muda. O ponto vermelho é o estado inicial, e ele escolhe onde a elipse começa a ser percorrida.",
             prediction: "Dobrando v₀, a amplitude dobra? E se dobrar x₀?",
-            calculation: `ω₀ = √(k/m) = √(${api.fmt(v.tertiary, 1)}/0,5) = <b>${api.fmt(w)} rad/s</b><br>A = √(x₀² + (v₀/ω₀)²) = √(${api.fmt(v.parameter ** 2, 4)} + ${api.fmt((v.secondary / w) ** 2, 4)}) = <b>${api.fmt(A, 4)} m</b><em>φ = atan2(−v₀/ω₀ , x₀) = ${api.fmt(phi, 4)} rad</em>`,
+            calculation: `ω₀ = √(k/m) = √(${api.fmt(v.tertiary, 1)}/0,5) = <b>${api.fmt(w)} rad/s</b><br>A = √(x₀² + (v₀/ω₀)²) = √(${api.fmt(v.parameter ** 2, 4)} + ${api.fmt((v.secondary / w) ** 2, 4)}) = <b>${api.fmt(A, 4)} m</b><em>δ = atan2(v₀/ω₀ , x₀) = ${api.fmt(delta, 4)} rad</em>`,
             metrics: [
               ["ω₀", `${api.fmt(w)} rad/s`],
               ["período T", `${api.fmt(P.period(w))} s`],
               ["amplitude A", `${api.fmt(A, 4)} m`],
-              ["fase φ", `${api.fmt(phi, 4)} rad`],
+              ["fase δ", `${api.fmt(delta, 4)} rad`],
               ["energia E = ½kA²", `${api.fmt(P.energy(v.parameter, v.secondary, w, m), 4)} J`]
             ],
             concept: "Amplitude e fase não são propriedades do oscilador: são as duas constantes de integração que os dados iniciais fixam.",
             prompts: [
               "Reproduza o exemplo das notas: x₀ = 0,10 m, v₀ = 0,30 m/s, k = 8 N/m.",
               "Ache dois pares (x₀, v₀) diferentes com a mesma amplitude.",
-              "Mude apenas o sinal de v₀ e explique o que acontece com φ."
+              "Mude apenas o sinal de v₀ e explique o que acontece com δ."
             ],
             legend: [[api.C.green, "x(t)"], [api.C.gold, "±A"], [api.C.red, "estado inicial"]],
             secondaryTitle: "Retrato de fase",
@@ -170,7 +170,7 @@
 
           const s = api.axes(api.second, 0.02, 0.3, 0, 12, "complacência C (L/cmH₂O)", "frequência (Hz)");
           api.line(s, api.curve((c) => P.hertz(P.respiratoryOmega(c, v.secondary)), 0.02, 0.3, 120), api.C.blue);
-          api.hline(s, 5, api.C.gold, [5, 4], "≈ 5 Hz em adulto saudável");
+          api.hline(s, 5, api.C.gold, [5, 4], "≈ 5 Hz: resultado do modelo livre");
           api.dot(s, v.parameter, P.hertz(w), api.C.red, 4.5);
         },
 
@@ -181,7 +181,7 @@
           return {
             title: "Oscilação livre do sistema respiratório",
             subtitle: `C = ${api.fmt(v.parameter, 3)} L/cmH₂O · I = ${api.fmt(v.secondary, 3)} cmH₂O·s²/L`,
-            regime: f > 3 && f < 8 ? ["faixa fisiológica", "ok"] : ["fora da faixa usual", "warn"],
+            regime: f > 3 && f < 8 ? ["modelo quase-estático (não é a Fres medida)", "ok"] : ["fora da faixa deste modelo", "warn"],
             caption: "A mesma equação do bloco e da mola, com volume no lugar de posição e pressão no lugar de força. A frequência natural cai em poucos hertz.",
             prediction: "Um pulmão mais complacente oscila mais rápido ou mais devagar?",
             calculation: `E_l = 1/C = 1/${api.fmt(v.parameter, 3)} = <b>${api.fmt(El, 2)} cmH₂O/L</b><br>ω₀ = √(E_l/I) = √(${api.fmt(El, 2)}/${api.fmt(v.secondary, 3)}) = <b>${api.fmt(w, 2)} rad/s</b><em>f = ω₀/2π = ${api.fmt(f, 2)} Hz — a base da técnica de oscilações forçadas</em>`,
@@ -202,7 +202,7 @@
             legend: [[api.C.green, "volume"], [api.C.gold, "período"]],
             secondaryTitle: "Frequência natural contra complacência",
             secondarySubtitle: "cai como 1/√C",
-            secondaryCaption: "A Aula 13 acrescenta a resistência e transforma isto em medida clínica."
+            secondaryCaption: "A Aula 12 acrescenta a resistência e a Aula 13 o forçamento, que transforma isto em medida clínica."
           };
         }
       },

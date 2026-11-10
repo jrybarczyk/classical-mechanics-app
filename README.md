@@ -23,6 +23,7 @@ Site publicado: <https://jrybarczyk.github.io/classical-mechanics-app/>
 | 13 | [Aula 13 · Oscilações forçadas e ressonância](aula-13-ressonancia/) | Resposta estacionária em amplitude e fase, pontos de meia potência e largura de banda, e a distinção entre a ressonância em deslocamento e a em velocidade. |
 | 14 | [Aula 14 · Osciladores acoplados e modos normais](aula-14-modos-normais/) | Modos simétrico e antissimétrico, a condição inicial com só uma massa deslocada, e o batimento: o que migra entre as massas e o que não migra. |
 | D1 | [Desafio 1 · A amostra de sangue na centrífuga](desafio-01-centrifuga/) | Desafio integrador em dez fases travadas, das Aulas 1 a 10: regime de Reynolds da hemácia, sedimentação de Stokes, o protocolo de 3000 rpm, a normal no fundo do tubo, gravidade efetiva, peso relativo de Coriolis, energia do rotor, desbalanceamento e o laudo final. Cada fase só abre quando a anterior fecha. |
+| D2 | [Desafio 2 · Artemis II: ida e volta à Lua em retorno livre](desafio-02-artemis/) | Desafio integrador em dez fases travadas, das Aulas 4 a 19: o voo da Artemis II refeito com a gravitação do curso — órbita alta de espera, injeção translunar, equação do foguete, equação de Kepler, esfera de influência, sobrevoo hiperbólico da Lua, maré no astronauta e reentrada, comparados com os dados reais do voo. |
 
 ## Como usar
 

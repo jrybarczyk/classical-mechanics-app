@@ -35,7 +35,7 @@
   /** A potência é sempre máxima em ω₀, mesmo quando a amplitude não é. */
   const omegaPower = (w0) => w0;
 
-  /** Pontos de meia potência: |ω₀² − ω²| = 2βω. Largura → 2β para Q ≫ 1. */
+  /** Pontos de meia potência: |ω₀² − ω²| = 2βω. A largura é exatamente 2β, para qualquer β. */
   const halfPowerPoints = (w0, g) => {
     const lo = Math.sqrt(w0 * w0 + g * g) - g;
     const hi = Math.sqrt(w0 * w0 + g * g) + g;
