@@ -26,30 +26,45 @@
         draw(api, v) {
           const { ctx, width, height } = api.main;
           const m = 1, k = v.secondary, kap = v.parameter;
-          const desl = 26 * Math.cos(v.tertiary);
-          const x0 = 70, xf = Math.min(width - 60, 640);
-          const larg = 46;
+          /* Geometria proporcional à largura da tela: em telas estreitas os
+             tamanhos fixos em pixels faziam as massas do modo antissimétrico
+             se sobreporem. Os deslocamentos são limitados para que sobre
+             sempre uma folga visível entre as duas massas. */
+          const esc = Math.max(0.55, Math.min(1, width / 640));
+          const x0 = Math.max(22, width * 0.07), xf = width - x0;
+          const vao = xf - x0;
+          const larg = Math.max(20, Math.min(46, vao * 0.075));
+          const altm = larg * 0.74;
+          const folga = Math.max(10, vao * 0.05);
+          const entre = vao * 0.32;                       /* distância de repouso entre os centros */
+          const amp = Math.max(4, Math.min(26, (entre - larg - folga) / 2));
+          const desl = amp * Math.cos(v.tertiary);
+          const bobinas = Math.max(5, Math.round(8 * esc));
+          const ampMola = 7 * esc;
+          const fonte = Math.max(10, Math.round(13 * esc));
 
-          [["simétrico", 1, height * 0.3, api.C.green, P.omegaSym(k, m)],
+          [["simétrico", 1, height * 0.30, api.C.green, P.omegaSym(k, m)],
            ["antissimétrico", -1, height * 0.74, api.C.red, P.omegaAnti(k, kap, m)]].forEach(([nome, sinal, y, cor, w]) => {
-            api.hatch(ctx, x0, y - 34, x0, y + 34, "#b6c0b7", 11, 9);
-            api.hatch(ctx, xf, y + 34, xf, y - 34, "#b6c0b7", 11, 9);
-            const c1 = x0 + (xf - x0) * 0.34 + desl;
-            const c2 = x0 + (xf - x0) * 0.66 + sinal * desl;
-            api.spring(ctx, x0, y, c1 - larg / 2, y, 8, 7, "#8fa091");
-            api.spring(ctx, c1 + larg / 2, y, c2 - larg / 2, y, 7, 8, cor);
-            api.spring(ctx, c2 + larg / 2, y, xf, y, 8, 7, "#8fa091");
+            const meia = altm / 2 + 6;
+            api.hatch(ctx, x0, y - meia - 4, x0, y + meia + 4, "#b6c0b7", 11 * esc, 9 * esc);
+            api.hatch(ctx, xf, y + meia + 4, xf, y - meia - 4, "#b6c0b7", 11 * esc, 9 * esc);
+            const c1 = x0 + vao * 0.34 + desl;
+            const c2 = x0 + vao * 0.66 + sinal * desl;
+            api.spring(ctx, x0, y, c1 - larg / 2, y, bobinas, ampMola, "#8fa091");
+            api.spring(ctx, c1 + larg / 2, y, c2 - larg / 2, y, Math.max(4, bobinas - 1), ampMola * 1.1, cor);
+            api.spring(ctx, c2 + larg / 2, y, xf, y, bobinas, ampMola, "#8fa091");
             [c1, c2].forEach((cx) => {
               ctx.fillStyle = `${cor}29`; ctx.strokeStyle = cor; ctx.lineWidth = 2;
-              ctx.fillRect(cx - larg / 2, y - 17, larg, 34);
-              ctx.strokeRect(cx - larg / 2, y - 17, larg, 34);
+              ctx.fillRect(cx - larg / 2, y - altm / 2, larg, altm);
+              ctx.strokeRect(cx - larg / 2, y - altm / 2, larg, altm);
             });
-            api.vector(ctx, c1, y - 30, c1 + Math.sign(desl || 1) * 22, y - 30, cor, 2, 7);
-            api.vector(ctx, c2, y - 30, c2 + sinal * Math.sign(desl || 1) * 22, y - 30, cor, 2, 7);
-            ctx.fillStyle = cor; ctx.font = "600 13px Ubuntu, system-ui, sans-serif";
-            ctx.fillText(`${nome} · ω = ${api.fmt(w)} rad/s`, x0, y - 52);
-            ctx.fillStyle = api.C.muted; ctx.font = "11px Ubuntu, system-ui, sans-serif";
-            ctx.fillText(sinal > 0 ? "mola central mantém o comprimento natural" : "mola central comprime e estende", x0, y + 52);
+            const ya = y - altm / 2 - 8 * esc, seta = 22 * esc;
+            api.vector(ctx, c1, ya, c1 + Math.sign(desl || 1) * seta, ya, cor, 2, 7);
+            api.vector(ctx, c2, ya, c2 + sinal * Math.sign(desl || 1) * seta, ya, cor, 2, 7);
+            ctx.fillStyle = cor; ctx.font = `600 ${fonte}px Ubuntu, system-ui, sans-serif`;
+            ctx.fillText(`${nome} · ω = ${api.fmt(w)} rad/s`, x0, y - altm / 2 - 24 * esc);
+            ctx.fillStyle = api.C.muted; ctx.font = `${Math.max(9, Math.round(11 * esc))}px Ubuntu, system-ui, sans-serif`;
+            ctx.fillText(sinal > 0 ? "mola central mantém o comprimento natural" : "mola central comprime e estende", x0, y + altm / 2 + 20 * esc);
           });
 
           /* Como as duas frequências se separam à medida que a mola central endurece.

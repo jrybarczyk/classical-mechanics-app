@@ -54,7 +54,7 @@
           return {
             title: "Amplitude e fase da resposta forçada",
             subtitle: `β/ω₀ = ${api.fmt(g)} · ω/ω₀ = ${api.fmt(v.secondary)} · Q = ${api.fmt(P.quality(w0, g), 2)}`,
-            regime: tem ? [`pico em ω_R = ${api.fmt(wr, 3)} ω₀`, "ok"] : ["sem pico de amplitude", "alert"],
+            regime: tem ? [`pico de amplitude a ${api.fmt(wr, 3)} da frequência natural`, "ok"] : ["sem pico de amplitude", "alert"],
             caption: "O pico de deslocamento não está em ω₀: está em ω_R = √(ω₀² − 2β²), e desaparece quando β passa de ω₀/√2. A fase, essa vale π/2 em ω₀ sempre.",
             prediction: "Para que valor de β/ω₀ o pico de amplitude deixa de existir?",
             calculation: `D(ω) = A/√[(ω₀²−ω²)² + 4β²ω²] = ${api.fmt(v.tertiary)}/√[${api.fmt((1 - v.secondary ** 2) ** 2, 4)} + ${api.fmt(4 * g * g * v.secondary ** 2, 4)}] = <b>${api.fmt(A, 4)}</b><br>δ = <b>${api.fmt(d, 1)}°</b><em>${tem ? `ω_R/ω₀ = √(1 − 2β²/ω₀²) = ${api.fmt(wr, 4)}` : `1 − 2β²/ω₀² = ${api.fmt(1 - 2 * g * g, 4)} < 0: não há máximo`}</em>`,
@@ -72,7 +72,7 @@
               "Verifique que δ = 90° em ω = ω₀ para qualquer β.",
               "Compare D(ω₀) com o pico D(ω_R) e diga quando a diferença importa."
             ],
-            legend: [[api.C.green, "β escolhido"], [api.C.red, "ω_R"], [api.C.grayLight, "ω₀"]],
+            legend: [[api.C.green, "β escolhido"], [api.C.grayLight, "β/ω₀ = 0,05"], [api.C.blue, "0,1"], [api.C.gold, "0,25"], [api.C.red, "0,7 (tracejadas: referência)"]],
             secondaryTitle: "Fase contra frequência",
             secondarySubtitle: "de 0 a π, cruzando π/2 exatamente em ω₀",
             secondaryCaption: "É a fase, e não a amplitude, que marca ω₀ sem ambiguidade."
