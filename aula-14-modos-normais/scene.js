@@ -76,7 +76,7 @@
           api.dot(s2, kap, P.omegaSym(k, m), api.C.green, 4.5);
           api.dot(s2, kap, P.omegaAnti(k, kap, m), api.C.red, 4.5);
           api.dot(s2, 0, P.omegaSym(k, m), api.C.gold, 5, true);
-          api.label(s2, 0.15, P.omegaSym(k, m) * 1.06, "degenerescência", api.C.gold, "left");
+          api.label(s2, 0.25, P.omegaSym(k, m) * 0.9, "degenerescência em κ = 0", api.C.gold, "left", "top");
         },
 
         text(v, api) {

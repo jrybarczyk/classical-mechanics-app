@@ -130,7 +130,10 @@ function root_draw() {
     const element = $(id);
     const ratio = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     const width = element.clientWidth || 900;
-    const height = Math.round(width * (id === "mainCanvas" ? 0.5 : 0.32));
+    /* Em telas estreitas as proporções fixas achatavam os gráficos até os
+       rótulos se sobreporem; a razão altura/largura cresce quando a largura cai. */
+    const estreita = width < 620;
+    const height = Math.round(width * (id === "mainCanvas" ? (estreita ? 0.72 : 0.5) : (estreita ? 0.62 : 0.32)));
     element.width = Math.round(width * ratio);
     element.height = Math.round(height * ratio);
     element.style.height = `${height}px`;

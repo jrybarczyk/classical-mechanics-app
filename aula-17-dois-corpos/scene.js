@@ -42,8 +42,8 @@
           api.dot(chart, agora.r2[0], agora.r2[1], api.C.red, 3.5 + 3 / (1 + m1 / m2));
           api.dot(chart, 0, 0, api.C.ink, 4.5);
           api.label(chart, 0.06 * lim, -0.09 * lim, "CM", api.C.ink, "left", "top");
-          api.label(chart, agora.r1[0], agora.r1[1] + 0.09 * lim, "m₁", api.C.green, "center");
-          api.label(chart, agora.r2[0], agora.r2[1] + 0.09 * lim, "m₂", api.C.red, "center");
+          api.label(chart, agora.r1[0] + 0.05 * lim, agora.r1[1], "m₁", api.C.green, "left", "middle");
+          api.label(chart, agora.r2[0] - 0.05 * lim, agora.r2[1], "m₂", api.C.red, "right", "middle");
         },
 
         text(v, api) {
@@ -172,12 +172,14 @@
           const w = P.vibrationalOmega(v.tertiary, mu);
           const nu = P.waveNumber(w);
           const chart = api.axes(api.main, 1500, 2600, 0, 1.15, "número de onda ν̃ (cm⁻¹)", "intensidade relativa");
-          const banda = (centro, cor, rot, alt = 1) => {
+          const banda = (centro, cor, rot, alt = 1, lado = 0) => {
             api.line(chart, api.curve((x) => alt * Math.exp(-(((x - centro) / 9) ** 2)), 1500, 2600, 400), cor, [], 2.6);
-            api.label(chart, centro, alt + 0.05, rot, cor, "center");
+            /* rótulo ao lado da banda (não por cima), para as linhas de 2143 e 2146 não colidirem */
+            if (lado < 0) api.label(chart, centro - 14, alt * 0.93, rot, cor, "right", "middle");
+            else api.label(chart, centro + 14, alt * 0.93, rot, cor, "left", "middle");
           };
-          banda(2143, api.C.grayLight, "¹²C¹⁶O medido: 2143", 0.75);
-          banda(2096, "#c9d6e4", "¹³C¹⁶O medido: 2096", 0.6);
+          banda(2143, api.C.grayLight, "¹²C¹⁶O medido: 2143", 0.75, -1);
+          banda(2096, "#c9d6e4", "¹³C¹⁶O medido: 2096", 0.5, -1);
           if (nu > 1500 && nu < 2600) banda(nu, api.C.green, `modelo: ${api.fmt(nu, 0)}`, 1);
           api.hline(chart, 0, "#b9c4bb", []);
 

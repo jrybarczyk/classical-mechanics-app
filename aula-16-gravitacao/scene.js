@@ -29,7 +29,7 @@
           api.line(chart, api.curve((x) => Math.abs(P.sphereField(x * R, R, M)), 0, 1, 100), api.C.green, [], 3);
           api.line(chart, api.curve((x) => Math.abs(P.sphereField(x * R, R, M)), 1, 3, 160), api.C.green, [], 3);
           api.line(chart, api.curve((x) => (x === 0 ? gs * 1.25 : Math.min(gs * 1.25, gs / (x * x))), 0.35, 3, 160), api.C.grayLight, [5, 4], 1.8);
-          api.label(chart, 2.9, gs / 9 + gs * 0.06, "GM/r² se toda a massa estivesse no centro", api.C.grayLight, "right");
+          api.label(chart, 2.95, gs * 0.5, "GM/r² (toda a massa no centro)", api.C.muted, "right");
           api.vline(chart, 1, api.C.gold, [4, 4], "superfície");
           api.dot(chart, 1, gs, api.C.gold, 5.5);
           api.dot(chart, v.parameter, Math.abs(P.sphereField(v.parameter * R, R, M)), api.C.red, 5);

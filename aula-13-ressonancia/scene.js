@@ -33,7 +33,8 @@
           api.vline(chart, 1, api.C.grayLight, [3, 4], "ω₀");
           if (P.hasAmplitudePeak(w0, g)) {
             const wr = P.omegaAmplitude(w0, g);
-            api.vline(chart, wr, api.C.red, [5, 4], `ω_R = ${api.fmt(wr, 3)}`);
+            api.vline(chart, wr, api.C.red, [5, 4]);
+            api.label(chart, wr + 0.02, chart.yMax, "ω_R", api.C.red, "left", "top");
             api.dot(chart, wr, P.amplitude(wr, v.tertiary, w0, g), api.C.red, 5);
           }
           api.dot(chart, v.secondary, P.amplitude(v.secondary, v.tertiary, w0, g), api.C.ink, 5.5);

@@ -183,8 +183,14 @@
           api.line(chart, api.curve((rk) => P.circularSpeed(rk * 1000, P.GM_TERRA) / 1000, RT, 100000, 200), api.C.blue, [5, 4], 2);
           api.line(chart, api.curve((rk) => P.escapeSpeed(rk * 1000, P.GM_TERRA) / 1000, RT, 100000, 200), api.C.red, [5, 4], 2);
           api.vline(chart, RT, api.C.ink, [], "superfície");
-          api.vline(chart, rp / 1000, rp / 1000 < RT ? api.C.red : api.C.gold, [4, 4], "perigeu");
-          if (ra / 1000 < 100000) api.vline(chart, ra / 1000, api.C.gold, [4, 4], "apogeu");
+          const corPerigeu = rp / 1000 < RT ? api.C.red : api.C.gold;
+          api.vline(chart, rp / 1000, corPerigeu, [4, 4]);
+          /* rótulo mais embaixo e do outro lado: perto da superfície colidiria com "superfície" */
+          api.label(chart, rp / 1000, chart.yMin + (chart.yMax - chart.yMin) * 0.06, "perigeu", corPerigeu, rp / 1000 < RT ? "right" : "left", "bottom");
+          if (ra / 1000 < 100000) {
+            api.vline(chart, ra / 1000, api.C.gold, [4, 4]);
+            api.label(chart, ra / 1000, chart.yMin + (chart.yMax - chart.yMin) * 0.14, "apogeu", api.C.gold, "left", "bottom");
+          }
           const r = Math.min(Math.max(v.tertiary * 1000, rp, P.R_TERRA), ra);
           if (r <= ra) api.dot(chart, r / 1000, P.visViva(r, a, P.GM_TERRA) / 1000, api.C.ink, 5.5);
           api.label(chart, 96000, P.escapeSpeed(96000e3, P.GM_TERRA) / 1000 + 0.35, "escape", api.C.red, "right");
