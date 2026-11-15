@@ -283,7 +283,6 @@
               ["metaestável", fmtEq(meta)],
               ["barreira ΔU do poço metaestável", Number.isFinite(b.meta) ? `${api.fmt(b.meta)} U₀` : "—"],
               ["barreira a partir do poço estável", Number.isFinite(b.estavel) ? `${api.fmt(b.estavel)} U₀` : "—"],
-              ["ω₀ nos poços (×√(U₀/m)/a)", `${est ? api.fmt(est.omega) : "—"} e ${meta ? api.fmt(meta.omega) : "—"}`],
               ["U(x₀)", `${api.fmt(Ux0)} U₀`]
             ],
             concept: "Estável, instável e metaestável são três respostas à mesma pergunta: o que uma pequena perturbação faz. A diferença entre estável e metaestável só aparece quando a perturbação deixa de ser pequena e alcança a barreira.",
@@ -351,7 +350,6 @@
               ["velocidade ao tocar", `${api.fmt(q.v)} m/s`],
               ["força média F̄ = m_ef g h/d", `${api.fmt(q.Fmed / 1000, 2)} kN`],
               ["F̄ em pesos de um corpo de 70 kg", `${api.fmt(q.Fmed / (70 * 9.8), 1)} ×`],
-              ["desaceleração média", `${api.fmt(q.decel / 9.8, 0)} g`],
               ["d mínimo para F̄ = F_lim", `${api.fmt(dReq * 100, 1)} cm`],
               ["altura crítica h_c para este d", `${api.fmt(hc, 2)} m`]
             ],
@@ -419,14 +417,12 @@
             prediction: "A potência mecânica do coração em repouso é da ordem de 1 W, 10 W ou 100 W?",
             calculation: `W_p = p̄ ΔV = ${api.fmt(p, 0)}·133,3 Pa · ${api.fmt(dV, 0)}·10⁻⁶ m³ = <b>${api.fmt(c.Wp, 3)} J</b><br>T = ½ρΔV v² = ½·1060·${api.fmt(dV * 1e-6, 6)}·${api.fmt(vej)}² = ${api.fmt(c.Tk, 4)} J (${api.fmt(100 * c.Tk / c.W, 1)} %)<br>𝒫 = W f = ${api.fmt(c.W, 3)} J · ${api.fmt(f / 60, 3)} s⁻¹ = <b>${api.fmt(pot, 2)} W</b><em>em um dia: ${api.fmt(diario / 1000, 0)} kJ ≈ ${api.fmt(diario / 4184, 0)} kcal de trabalho mecânico; com eficiência de ~20 %, o músculo gasta cerca de ${api.fmt(diario / 4184 / 0.2, 0)} kcal</em>`,
             metrics: [
-              ["trabalho de pressão W_p", `${api.fmt(c.Wp, 3)} J`],
               ["energia cinética do sangue ejetado", `${api.fmt(c.Tk, 4)} J`],
               ["trabalho por batimento W", `${api.fmt(c.W, 3)} J`],
               ["potência mecânica 𝒫 (VE)", `${api.fmt(pot, 2)} W`],
               ["ventrículo direito (p̄ ≈ 15 mmHg), por batimento", `${api.fmt(vd.W, 3)} J`],
               ["coração inteiro (VE + VD)", `${api.fmt(total, 2)} J · ${api.fmt(P.cardiacPower(total, f), 2)} W`],
-              ["fração do metabolismo basal (~80 W), VE", `${api.fmt(100 * pot / 80, 1)} %`],
-              ["trabalho em 24 h", `${api.fmt(diario / 1000, 0)} kJ`]
+              ["VE: fração do metabolismo basal (~80 W) · trabalho em 24 h", `${api.fmt(100 * pot / 80, 1)} % · ${api.fmt(diario / 1000, 0)} kJ`]
             ],
             concept: "𝒫 = dW/dt aplicado a uma bomba: trabalho por ciclo vezes ciclos por segundo. A pressão é a força por área e o volume é a área vezes o deslocamento, de modo que p ΔV é exatamente F·d.",
             prompts: [

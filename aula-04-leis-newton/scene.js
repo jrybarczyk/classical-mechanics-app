@@ -424,7 +424,6 @@
               ["fração aproveitada R/2T", api.fmt(R / (2 * T), 3)],
               ["normal no leito, mg − T", `${api.fmt(P.liftedNormal(8, T), 2)} N`],
               ["atrito disponível μ(mg − T)", `${api.fmt(atrito, 2)} N`],
-              ["θ para aproveitar metade", `${api.fmt(P.angleForFraction(0.5), 0)}°`],
               ["inclinação de contratração", Number.isFinite(tilt) ? `${api.fmt(tilt, 1)}°` : "impossível"]
             ],
             concept: "Três resultados da aula aparecem juntos em um aparelho real: a roldana ideal preserva o módulo da tração, componentes transversais se cancelam por simetria, e o equilíbrio só fecha se houver uma força de contratração. Quando o atrito não basta, a contratração vem de inclinar a cabeceira do leito — o peso do próprio paciente entra no diagrama de corpo livre.",

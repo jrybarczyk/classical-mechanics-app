@@ -204,7 +204,6 @@
               ["alcance R′ exato / 1ª ordem", `${api.fmt(q.R)} / ${q.Rlin > 0 ? api.fmt(q.Rlin) + " m" : "negativo: a 1ª ordem perdeu o sentido"}`],
               ["ΔR exato / 1ª ordem", `${api.fmt(dR)} / ${api.fmt(dRlin)} m`],
               ["erro da 1ª ordem em ΔR", `${api.fmt(100 * erro, 1)} %`],
-              ["altura máxima exata / 1ª ordem", `${api.fmt(q.H)} / ${api.fmt(q.Hlin)} m`],
               ["limite horizontal U/k (assíntota)", k > 0 ? `${api.fmt(q.U / k, 0)} m` : "∞"]
             ],
             concept: "Perturbação troca uma equação transcendente por uma sequência de contas algébricas, cada uma usando a anterior: dentro do termo que já tem um fator k entra a solução de ordem zero. O preço é uma série truncada, que só vale enquanto a própria correção é pequena.",

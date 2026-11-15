@@ -152,9 +152,7 @@
               ["v_θ = rθ̇", api.fmt(st.vt)],
               ["a_r", api.fmt(st.ar)],
               ["a_θ", api.fmt(st.at)],
-              ["rapidez |v| = r√(α² + ω²)", api.fmt(st.speed)],
               ["ângulo ψ entre v e e_r", `${api.fmt((Math.atan2(st.vt, st.vr) * 180) / Math.PI, 1)}°`],
-              ["|a| = r(α² + ω²)", api.fmt(Math.hypot(st.ar, st.at))]
             ],
             concept: "Os termos extras vêm da derivada dos vetores da base, não de uma interação nova. Derivam-se as componentes e também os versores.",
             prompts: [
@@ -231,11 +229,8 @@
               ["rapidez |v|", `${api.fmt(k.speed)} m/s`],
               ["a_t = (v·a)/|v|", `${api.fmt(k.at)} m/s²`],
               ["a_n = |v×a|/|v|", `${api.fmt(k.an)} m/s²`],
-              ["|a| total", `${api.fmt(Math.hypot(k.ax, k.ay))} m/s²`],
-              ["ângulo entre a e v", `${api.fmt((Math.acos(Math.min(1, k.at / Math.max(1e-9, Math.hypot(k.ax, k.ay)))) * 180) / Math.PI, 1)}°`],
               ["raio ρ = |v|²/a_n", Number.isFinite(k.rho) ? `${api.fmt(k.rho)} m` : "∞"],
               ["ρ analítico, 2p·√(1 + x²/4p²)³", `${api.fmt(P.parabolaCurvature(k.x, v.parameter))} m`],
-              ["instante em que a_t = a_n, 2p/u", `${api.fmt((2 * v.parameter) / v.secondary)} s`]
             ],
             concept: "A rapidez pode crescer sem que a aceleração mude: o que varia é o ângulo entre a aceleração e a velocidade.",
             prompts: [
@@ -320,12 +315,9 @@
               ["colatitude θ(t)", `${api.fmt(gTh, 1)}°`],
               ["azimute φ(t)", `${api.fmt(gPh, 1)}°`],
               ["v_θ = θ̇, v_φ = φ̇ senθ", `${api.fmt(vel[1])}, ${api.fmt(vel[2])}`],
-              ["rapidez |v|", api.fmt(Math.hypot(vel[1], vel[2]))],
               ["a_r", api.fmt(a[0])],
               ["a_θ", api.fmt(a[1])],
               ["a_φ", api.fmt(a[2])],
-              ["|a|", api.fmt(Math.hypot(a[0], a[1], a[2]))],
-              ["−rφ̇² (polar, plano equatorial)", api.fmt(polar[0])]
             ],
             concept: "Os casos-limite valem mais que a memorização: uma fórmula longa só é confiável se reproduz a fórmula curta que já conhecemos. Sobre a esfera eles são curvas: equador, meridiano e paralelo.",
             prompts: [
@@ -392,15 +384,10 @@
             calculation: `θ = (π/2)[1 + ${api.fmt(A)}·cos(${api.fmt(fase)})] = ${api.fmt(gTh, 1)}° · φ = ${api.fmt(gPh, 1)}°<br>θ̇ = −(π/2)·${api.fmt(A)}·${n}·${api.fmt(w)}·sen(${api.fmt(fase)}) = ${api.fmt(q.thdot)} rad/s<br>v = b√(θ̇² + ω²sen²θ) = √(${api.fmt(q.thdot ** 2)} + ${api.fmt(w * w)}·${api.fmt(Math.sin(q.theta) ** 2)}) = <b>${api.fmt(q.speed)}</b><em>enunciado (A = ½, n = 4): v = bω√(π² sen²(4ωt) + sen²θ)</em>`,
             metrics: [
               ["colatitude θ(t)", `${api.fmt(gTh, 1)}°`],
-              ["azimute φ(t)", `${api.fmt(gPh, 1)}°`],
               ["θ̇", `${api.fmt(q.thdot)} rad/s`],
-              ["θ̈", `${api.fmt(q.thddot)} rad/s²`],
               ["rapidez v", api.fmt(q.speed)],
               ["v mínima, bω sen θ_extremo", api.fmt(vMin)],
               ["v máxima, bω√((πAn/2)² + 1)", api.fmt(vMax)],
-              ["a_r", api.fmt(q.a[0])],
-              ["a_θ = b(θ̈ − ω² senθ cosθ)", api.fmt(q.a[1])],
-              ["a_φ", api.fmt(q.a[2])],
               ["|a|", api.fmt(Math.hypot(...q.a))]
             ],
             concept: "O problema é a fórmula esférica em uso: dado o movimento em (r, θ, φ), a rapidez e a aceleração saem sem nenhuma conta cartesiana. A parcela θ̈, ausente na estação 3, aqui domina a_θ.",
