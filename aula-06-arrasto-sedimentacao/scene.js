@@ -37,7 +37,9 @@
           api.dot(chart, v.tertiary, 1 - Math.exp(-v.tertiary), api.C.green, 5);
           api.dot(chart, v.tertiary, Math.tanh(v.tertiary), api.C.red, 5);
 
-          const s = api.axes(api.second, 0, 5, 0, 3.4, "tempo t/τ", "distância x / (v_T τ)");
+          /* Em t = 5τ a distância linear vale 4,01 e a quadrática ln cosh 5 = 4,31: o teto antigo
+             (3,4) cortava o fim das duas curvas e o marcador no fim do percurso. */
+          const s = api.axes(api.second, 0, 5, 0, 4.6, "tempo t/τ", "distância x / (v_T τ)");
           api.line(s, api.curve((u) => u - (1 - Math.exp(-u)), 0, 5, 160), api.C.green);
           api.line(s, api.curve((u) => Math.log(Math.cosh(u)), 0, 5, 160), api.C.red);
           api.dot(s, v.tertiary, v.tertiary - (1 - Math.exp(-v.tertiary)), api.C.green, 4.2);
@@ -236,7 +238,11 @@
 
         draw(api, v) {
           const L10 = Math.log10;
-          const chart = api.axes(api.main, -6.5, -4.4, -9, -3, "raio R (m)", "v_T (m/s)", {
+          /* v_T ∝ R²Δρ/η cresce até ~10⁻²,5 m/s (Δρ e η extremos) e cai a ~10⁻¹⁰: a janela
+             vertical segue os extremos da curva (v_T é monótona em R); −9 e −3 são o mínimo. */
+          const yExt = [-6.5, -4.4].map((lr) => L10(P.stokesTerminal(Math.pow(10, lr), v.secondary, v.tertiary)));
+          const yLo = Math.min(-9, Math.floor(Math.min(...yExt) - 0.3)), yHi = Math.max(-3, Math.ceil(Math.max(...yExt) + 0.3));
+          const chart = api.axes(api.main, -6.5, -4.4, yLo, yHi, "raio R (m)", "v_T (m/s)", {
             xFormat: (t) => `10${api.sup(Math.round(t * 10) / 10)}`,
             yFormat: (t) => `10${api.sup(Math.round(t))}`
           });
@@ -312,8 +318,12 @@
           api.dot(chart, v.parameter, a.fracao, api.C.red, 6);
 
           const L10 = Math.log10;
-          const sc = api.axes(api.second, L10(0.5), L10(10), -5.2, -2, "diâmetro d (μm)", "v_T (m/s)", {
-            xTicks: [L10(0.5), 0, L10(2), L10(5), 1], xFormat: (x) => api.fmt(Math.pow(10, x), 1), yFormat: (y) => `10${api.sup(Math.round(y))}`
+          /* v_T(d) é monótona em d: o piso acompanha o valor em 0,5 μm, que com ρ_p baixo
+             caía abaixo do −5,2 fixo (e levava o marcador junto). */
+          const yIni = L10(P.aerosolSettling(0.5e-6, rho, D, t).vT), yFim = L10(P.aerosolSettling(10e-6, rho, D, t).vT);
+          const sLo = Math.min(-5.2, Math.floor(Math.min(yIni, yFim) * 5 - 1) / 5), sHi = Math.max(-2, Math.ceil(Math.max(yIni, yFim) * 5 + 1) / 5);
+          const sc = api.axes(api.second, L10(0.5), L10(10), sLo, sHi, "diâmetro d (μm)", "v_T (m/s)", {
+            xTicks: [L10(0.5), 0, L10(2), L10(5), 1], yTicks: Array.from({ length: Math.floor(sHi) - Math.ceil(sLo) + 1 }, (_, i) => Math.ceil(sLo) + i), xFormat: (x) => api.fmt(Math.pow(10, x), 1), yFormat: (y) => `10${api.sup(Math.round(y))}`
           });
           api.line(sc, api.curve((lx) => L10(P.aerosolSettling(Math.pow(10, lx) * 1e-6, rho, D, t).vT), L10(0.5), 1, 100), api.C.blue);
           api.dot(sc, L10(v.parameter), L10(a.vT), api.C.red, 4.5);
@@ -371,14 +381,21 @@
           const rpm = v.parameter, r = v.secondary / 100, R = v.tertiary * 1e-6, L = v.quaternary / 100;
           const c = P.centrifugeSettling(R, 80, 1.2e-3, rpm, r, L);
           const L10 = Math.log10;
-          const chart = api.axes(api.main, 500, 6000, 0, Math.max(2.5, L10(P.centrifugeSettling(R, 80, 1.2e-3, 500, r, L).tempo) + 0.3), "rotação (rpm)", "tempo para percorrer L (s)", {
-            yTicks: [0, 1, 2, 3, 4], yFormat: (y) => `10${api.sup(Math.round(y))}`
+          /* t ∝ 1/rpm² cai a menos de 1 s (log < 0) com 6000 rpm, r = 20 cm, R grande e L
+             curto: o piso de 10⁰ s cortava a curva e o ponto. Teto e piso seguem os
+             extremos da curva (monótona em rpm); ticks inteiros cobrem toda a janela. */
+          const tMax = L10(P.centrifugeSettling(R, 80, 1.2e-3, 500, r, L).tempo), tMin = L10(P.centrifugeSettling(R, 80, 1.2e-3, 6000, r, L).tempo);
+          const yLo = Math.min(0, tMin - 0.3), yHi = Math.max(2.5, tMax + 0.3);
+          const yTicks = [];
+          for (let k = Math.ceil(yLo); k <= yHi; k += 1) yTicks.push(k);
+          const chart = api.axes(api.main, 500, 6000, yLo, yHi, "rotação (rpm)", "tempo para percorrer L (s)", {
+            yTicks, yFormat: (y) => `10${api.sup(Math.round(y))}`
           });
           api.line(chart, api.curve((n) => L10(P.centrifugeSettling(R, 80, 1.2e-3, n, r, L).tempo), 500, 6000, 200), api.C.green, [], 3);
           api.hline(chart, L10(60), api.C.gold, [4, 4], "1 min");
           api.hline(chart, L10(600), api.C.gold, [4, 4], "10 min");
           api.dot(chart, rpm, L10(c.tempo), api.C.red, 6);
-          api.label(chart, rpm, L10(c.tempo) + 0.15, `${api.fmt(c.tempo, 0)} s`, api.C.red, "center", "bottom");
+          api.label(chart, rpm, L10(c.tempo) + 0.15, `${api.fmt(c.tempo, c.tempo < 10 ? 1 : 0)} s`, api.C.red, "center", "bottom");
 
           const sc = api.axes(api.second, 500, 6000, 0, P.centrifuge(6000, r).rcf * 1.05, "rotação (rpm)", "RCF = ω²r/g");
           api.line(sc, api.curve((n) => P.centrifuge(n, r).rcf, 500, 6000, 120), api.C.blue);
@@ -436,14 +453,21 @@
         draw(api, v) {
           const tf = 4;
           const r = P.eulerQuadratic(v.parameter, tf, v.tertiary, v.secondary);
-          const chart = api.axes(api.main, 0, tf, 0, r.vT * 1.25, "tempo t (s)", "velocidade v (m/s)");
-          api.line(chart, api.curve((t) => P.vQuadratic(t, r.vT), 0, tf, 200), api.C.green, [], 3);
+          /* n = round(tf/Δt) passos: o último instante de Euler pode passar de tf (4,05 s com
+             Δt = 0,2025 s); a janela vai até ele para o último ponto não sair do quadro. */
+          const tEnd = Math.max(tf, r.serie[r.serie.length - 1][0]);
+          const chart = api.axes(api.main, 0, tEnd, 0, r.vT * 1.25, "tempo t (s)", "velocidade v (m/s)");
+          api.line(chart, api.curve((t) => P.vQuadratic(t, r.vT), 0, tEnd, 200), api.C.green, [], 3);
           api.line(chart, r.serie, api.C.red, [], 2);
+          /* Os marcadores não são recortados: no regime instável a série explode (10⁷³ m/s) e
+             só os que cabem na janela são desenhados; a divergência é indicada no rótulo. */
           r.serie.filter((_, i) => i % Math.max(1, Math.round(r.serie.length / 26)) === 0)
+            .filter(([, vv]) => vv >= chart.yMin && vv <= chart.yMax)
             .forEach(([t, vv]) => api.dot(chart, t, vv, api.C.red, 3));
+          if (r.instavel) api.label(chart, tEnd * 0.98, chart.yMax * 0.5, "Euler diverge: a série sai do quadro (Δt ≥ √(m/gc))", api.C.red, "right", "middle");
           api.hline(chart, r.vT, api.C.gold, [5, 4], "v_T = √(mg/c)");
 
-          const s = api.axes(api.second, -2.4, -0.4, -4, -0.6, "log₁₀ Δt", "log₁₀ erro máximo", {
+          const s = api.axes(api.second, -2.4, -0.3, -4, -0.6, "log₁₀ Δt", "log₁₀ erro máximo", {
             xFormat: (t) => `10${api.sup(Math.round(t * 10) / 10)}`,
             yFormat: (t) => `10${api.sup(Math.round(t))}`
           });

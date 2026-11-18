@@ -25,13 +25,19 @@
         draw(api, v) {
           const w0 = 1;
           const g = v.parameter * w0;
-          const chart = api.axes(api.main, 0, 12, -1.1, 1.25, "tempo ω₀t", "posição x (m)");
+          const principal = api.curve((t) => P.position(t, v.secondary, v.tertiary, w0, g), 0, 12, 320);
+          /* Janela vertical: com v₀ grande (±6 m/s) a posição passa de 5 m e a curva
+             principal saía de [−1,1; 1,25]. Os limites seguem a curva (e a envoltória,
+             no subamortecido); as três de referência tracejadas podem sair da janela. */
+          const A = g < w0 ? Math.hypot(v.secondary, (v.tertiary + g * v.secondary) / P.omega1(w0, g)) : 0;
+          const xs = principal.map((p) => p[1]).concat(A ? [A, -A] : []);
+          const yHi = Math.max(1.25, Math.max(...xs) * 1.1), yLo = Math.min(-1.1, Math.min(...xs) * 1.1);
+          const chart = api.axes(api.main, 0, 12, yLo, yHi, "tempo ω₀t", "posição x (m)");
           [[0.15, api.C.green], [1, api.C.blue], [2, api.C.red]].forEach(([r, cor]) => {
             api.line(chart, api.curve((t) => P.position(t, v.secondary, v.tertiary, w0, r * w0), 0, 12, 260), cor, [5, 4], 1.6);
           });
-          api.line(chart, api.curve((t) => P.position(t, v.secondary, v.tertiary, w0, g), 0, 12, 320), api.C.ink, [], 3.2);
+          api.line(chart, principal, api.C.ink, [], 3.2);
           if (g < w0) {
-            const A = Math.hypot(v.secondary, (v.tertiary + g * v.secondary) / P.omega1(w0, g));
             api.line(chart, api.curve((t) => A * Math.exp(-g * t), 0, 12, 120), api.C.gold, [4, 4], 1.6);
             api.line(chart, api.curve((t) => -A * Math.exp(-g * t), 0, 12, 120), api.C.gold, [4, 4], 1.6);
             api.label(chart, 11.8, A * Math.exp(-g * 11.8) + 0.07, "envoltória e^{−βt}", api.C.gold, "right");

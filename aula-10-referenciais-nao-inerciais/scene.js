@@ -24,8 +24,11 @@
 
         draw(api, v) {
           const w = v.tertiary * P.OMEGA_TERRA;
-          const chart = api.axes(api.main, 0, 500, 0, P.eastwardDeflection(500, 0, 3 * P.OMEGA_TERRA) * 100 * 1.05,
-            "altura de queda h (m)", "desvio para leste (cm)");
+          /* Teto do eixo: o valor fixo (equador com ω = 3 ω_Terra, ≈ 70 cm) deixava todas as
+             curvas achatadas junto do zero para ω pequeno; agora vem das curvas desenhadas
+             (equador incluído, que é a maior) no ω escolhido. */
+          const topo = Math.max(...[0, 23, 45, 70, v.secondary].map((lat) => P.eastwardDeflection(500, lat, w))) * 100 * 1.08;
+          const chart = api.axes(api.main, 0, 500, 0, topo, "altura de queda h (m)", "desvio para leste (cm)");
           [[0, "equador"], [23, "λ = 23°"], [45, "λ = 45°"], [70, "λ = 70°"]].forEach(([lat, rot], i) => {
             const cor = [api.C.green, api.C.blue, api.C.gold, api.C.red][i];
             api.line(chart, api.curve((h) => P.eastwardDeflection(h, lat, w) * 100, 0, 500, 120), cor,
@@ -36,13 +39,22 @@
           api.dot(chart, v.parameter, P.eastwardDeflection(v.parameter, v.secondary, w) * 100, api.C.red, 5.5);
 
           const oc = P.orderComparison(v.parameter, v.secondary, w);
-          const s = api.axes(api.second, 0.1, 3, -5, 1, "ω / ω_Terra", "log₁₀ do desvio (m)", {
+          /* Janela em log₁₀: a fixa [−5, 1] cortava a curva verde para h pequeno e λ perto
+             de 85° (desvio ~10⁻⁶ m) e deixava a correção ∝ ω³ (e o ponto vermelho) bem
+             abaixo do piso. Os limites (inteiros, para os rótulos 10ⁿ) cobrem as duas séries. */
+          const lg = (x) => Math.log10(Math.max(1e-9, x));
+          const verde = api.curve((r) => lg(P.eastwardDeflection(v.parameter, v.secondary, r * P.OMEGA_TERRA)), 0.1, 3, 100);
+          const verm = api.curve((r) => lg(P.orderComparison(v.parameter, v.secondary, r * P.OMEGA_TERRA).correcao), 0.1, 3, 100);
+          const todos = verde.concat(verm).map((p) => p[1]);
+          const yLo = Math.min(-5, Math.floor(Math.min(...todos) - 0.2));
+          const yHi = Math.max(1, Math.ceil(Math.max(...todos) + 0.2));
+          const s = api.axes(api.second, 0.1, 3, yLo, yHi, "ω / ω_Terra", "log₁₀ do desvio (m)", {
             yFormat: (t) => `10${api.sup(Math.round(t))}`
           });
-          api.line(s, api.curve((r) => Math.log10(Math.max(1e-9, P.eastwardDeflection(v.parameter, v.secondary, r * P.OMEGA_TERRA))), 0.1, 3, 100), api.C.green);
-          api.line(s, api.curve((r) => Math.log10(Math.max(1e-9, P.orderComparison(v.parameter, v.secondary, r * P.OMEGA_TERRA).correcao)), 0.1, 3, 100), api.C.red, [5, 4], 2.2);
-          api.dot(s, v.tertiary, Math.log10(Math.max(1e-9, oc.primeira)), api.C.green, 4.2);
-          api.dot(s, v.tertiary, Math.log10(Math.max(1e-9, oc.correcao)), api.C.red, 4.2);
+          api.line(s, verde, api.C.green);
+          api.line(s, verm, api.C.red, [5, 4], 2.2);
+          api.dot(s, v.tertiary, lg(oc.primeira), api.C.green, 4.2);
+          api.dot(s, v.tertiary, lg(oc.correcao), api.C.red, 4.2);
         },
 
         text(v, api) {

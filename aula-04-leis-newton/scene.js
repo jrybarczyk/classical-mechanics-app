@@ -231,7 +231,14 @@
         ],
 
         draw(api, v) {
-          const chart = api.axes(api.main, 0, 6, -12, 20, "tempo t (s)", "posição x (m)");
+          /* A janela vertical −12…20 m era fixa e a curva escolhida (o objeto do gráfico)
+             saía dela com a e v₀ extremos; agora ela cresce o necessário para
+             conter a solução verde e a tangente inicial (−12…20 fica como mínimo). */
+          const xs = [v.parameter, v.parameter + v.secondary * 1.6];
+          for (let i = 0; i <= 60; i += 1) xs.push(P.position(i / 10, v.parameter, v.secondary, v.tertiary));
+          const xLo = Math.min(-12, Math.min(...xs)), xHi = Math.max(20, Math.max(...xs));
+          const folga = 0.06 * (xHi - xLo);
+          const chart = api.axes(api.main, 0, 6, xLo === -12 ? -12 : xLo - folga, xHi === 20 ? 20 : xHi + folga, "tempo t (s)", "posição x (m)");
           /* Família de soluções da mesma equação, com dados iniciais variados. */
           for (let i = 0; i < 9; i += 1) {
             const v0 = -8 + i * 2.5;

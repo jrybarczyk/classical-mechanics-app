@@ -168,10 +168,15 @@
           const v0y = v.parameter * Math.sin(P.rad(v.secondary));
           const xr = (tau) => v0y / (P.G * tau);
 
-          const chart = api.axes(api.main, 0, 0.9, -0.2 * R0, R0 * 1.15, "v₀ᵧ / v_T", "alcance R (m)");
+          /* Eixo x: 0,9 basta quase sempre, mas com v₀ᵧ grande e τ pequeno o ponto
+             atual fica em v₀ᵧ/v_T de vários; a janela cresce para ele aparecer. */
+          const xTopo = Math.max(0.9, xr(v.tertiary) * 1.12);
+          const passo = (xTopo - 0.01) / 90;
+          const yBaixo = -0.2 * R0;
+          const chart = api.axes(api.main, 0, xTopo, yBaixo, R0 * 1.15, "v₀ᵧ / v_T", "alcance R (m)");
           const pts = [];
           const pts2 = [];
-          for (let r = 0.01; r <= 0.9; r += 0.01) {
+          for (let r = 0.01; r <= xTopo + 1e-9; r += passo) {
             const tau = v0y / (P.G * r);
             pts.push([r, exato(tau)]);
             pts2.push([r, aprox(tau)]);
@@ -181,17 +186,22 @@
           api.hline(chart, R0, api.C.grayLight, [3, 4], "R₀ sem arrasto");
           api.hline(chart, 0, "#b9c4bb", []);
           api.dot(chart, xr(v.tertiary), exato(v.tertiary), api.C.green, 5.5);
-          api.dot(chart, xr(v.tertiary), aprox(v.tertiary), api.C.red, 5);
+          /* A fórmula linear prevê alcance muito negativo; o marcador vai ao piso, oco. */
+          const Rap = aprox(v.tertiary);
+          if (Rap >= yBaixo) api.dot(chart, xr(v.tertiary), Rap, api.C.red, 5);
+          else api.dot(chart, xr(v.tertiary), yBaixo * 0.93, api.C.red, 5, true);
 
-          const s = api.axes(api.second, 0, 0.9, 0, 40, "v₀ᵧ / v_T", "erro da correção (%)");
+          const s = api.axes(api.second, 0, xTopo, 0, 40, "v₀ᵧ / v_T", "erro da correção (%)");
           const err = [];
-          for (let r = 0.01; r <= 0.9; r += 0.01) {
+          for (let r = 0.01; r <= xTopo + 1e-9; r += passo) {
             const tau = v0y / (P.G * r);
             err.push([r, Math.min(40, (Math.abs(aprox(tau) - exato(tau)) / exato(tau)) * 100)]);
           }
           api.line(s, err, api.C.blue);
           api.hline(s, 5, api.C.gold, [5, 4], "5 %");
-          api.dot(s, xr(v.tertiary), Math.min(40, (Math.abs(aprox(v.tertiary) - exato(v.tertiary)) / exato(v.tertiary)) * 100), api.C.red, 4.5);
+          const erroAtual = (Math.abs(aprox(v.tertiary) - exato(v.tertiary)) / exato(v.tertiary)) * 100;
+          if (erroAtual <= 38) api.dot(s, xr(v.tertiary), erroAtual, api.C.red, 4.5);
+          else api.dot(s, xr(v.tertiary), 37, api.C.red, 4.5, true);
         },
 
         text(v, api) {
@@ -250,14 +260,19 @@
           const v0y = v.secondary * Math.sin(P.rad(v.tertiary));
           const tq = P.fallTime(H, v0y, tau);
 
-          const chart = api.axes(api.main, 0, 2.5, 0, 2, "distância horizontal (m)", "altura (m)");
+          /* Trajetórias (a escolhida e as de referência) calculadas antes dos eixos: a janela
+             cresce para conter todas, porque com R grande e v₀ alto a gotícula passa de 3 m
+             e de 3 m de altura e a curva principal saía do quadro. */
+          const traj = (tt, rr) => api.param((t) => [P.dragX(t, v0x, tt), H + P.dragY(t, v0y, tt)], 0, P.fallTime(H, v0y, tt), rr);
+          const refs = [10, 30, 60, 100].map((rr) => traj(P.stokesTau(rr * 1e-6), 300));
+          const prin = traj(tau, 400);
+          let xTopo = 2.5, yTopo = 2;
+          prin.forEach((p) => { xTopo = Math.max(xTopo, p[0] * 1.08); yTopo = Math.max(yTopo, p[1] * 1.08); });
+          refs.forEach((c) => c.forEach((p) => { xTopo = Math.max(xTopo, p[0] * 1.04); yTopo = Math.max(yTopo, p[1] * 1.04); }));
+          const chart = api.axes(api.main, 0, xTopo, 0, yTopo, "distância horizontal (m)", "altura (m)");
           /* Gotículas de referência, para o raio escolhido ter contra o que ser lido. */
-          for (const rr of [10, 30, 60, 100]) {
-            const t2 = P.stokesTau(rr * 1e-6);
-            const tf = P.fallTime(H, v0y, t2);
-            api.line(chart, api.param((t) => [P.dragX(t, v0x, t2), H + P.dragY(t, v0y, t2)], 0, tf, 300), "#cbd8cb", [], 1.5);
-          }
-          api.line(chart, api.param((t) => [P.dragX(t, v0x, tau), H + P.dragY(t, v0y, tau)], 0, tq, 400), api.C.green, [], 3.2);
+          refs.forEach((c) => api.line(chart, c, "#cbd8cb", [], 1.5));
+          api.line(chart, prin, api.C.green, [], 3.2);
           /* Sem arrasto nenhum, a mesma ejeção iria muito mais longe. */
           const tv = (v0y + Math.sqrt(v0y * v0y + 2 * P.G * H)) / P.G;
           api.line(chart, api.param((t) => [v0x * t, H + v0y * t - 0.5 * P.G * t * t], 0, tv, 200), api.C.grayLight, [5, 4], 1.6);
@@ -265,7 +280,7 @@
           api.hline(chart, 0, "#8f9d91", []);
           api.dot(chart, 0, H, api.C.ink, 5);
           api.label(chart, 0.05, H + 0.1, "boca, 1,5 m", api.C.ink, "left");
-          api.label(chart, 2.45, 1.85, "cinza: sem arrasto", api.C.grayLight, "right");
+          api.label(chart, xTopo * 0.02, yTopo * 0.94, "cinza: sem arrasto", api.C.grayLight, "left");
 
           /* Alcance e tempo de suspensão contra o raio, em log-log. */
           const s2 = api.axes(api.second, 0, 120, -4, 1.2, "raio R (µm)", "log₁₀ (m ou s)");
@@ -532,7 +547,9 @@
 
           /* secundário: arco circular em B */
           const B = v.quaternary * 1e-3, rb = P.magneticRadius(r.v, B);
-          const s = api.axes(api.second, -rb * 0.1, rb * 1.3, -rb * 0.1, rb * 1.3, "x (m)", "y (m)");
+          /* O arco vai até φ = π/2 + 0,6, onde y = rb(1 + sen 0,6) ≈ 1,57 rb: o teto de y
+             precisa passar disso (com 1,3 rb a ponta do arco saía do quadro). */
+          const s = api.axes(api.second, -rb * 0.1, rb * 1.3, -rb * 0.1, rb * 1.65, "x (m)", "y (m)");
           api.line(s, api.param((ph) => [rb * Math.sin(ph), rb - rb * Math.cos(ph)], 0, Math.PI / 2 + 0.6, 120), api.C.violet, [], 3);
           api.line(s, [[0, 0], [0, rb]], api.C.grayLight, [4, 4], 1.4);
           api.dot(s, 0, rb, api.C.gray, 4, true);

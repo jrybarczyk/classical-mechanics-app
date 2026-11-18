@@ -24,7 +24,14 @@
         secondary: true,
 
         draw(api, v) {
-          const chart = api.axes(api.main, -0.6, 2.6, -0.9, 2.4, "x", "y");
+          /* Janela vertical: com deformação grande o caminho C₂ sai de [−0,9; 2,4]; os
+             limites passam a cobrir os dois caminhos (com folga para os rótulos). */
+          let yLo = -0.9, yHi = 2.4;
+          for (let i = 0; i <= 60; i += 1) {
+            const py = P.path(i / 60, A, B, v.secondary)[1];
+            yLo = Math.min(yLo, py - 0.35); yHi = Math.max(yHi, py + 0.35);
+          }
+          const chart = api.axes(api.main, -0.6, 2.6, yLo, yHi, "x", "y");
           api.field(chart, (x, y) => P.field(x, y, v.parameter), "#c3d2c4", v.tertiary, Math.round(v.tertiary * 0.7), 0.6);
           api.line(chart, api.param((s) => P.path(s, A, B, 0), 0, 1, 90), api.C.blue, [], 3);
           api.line(chart, api.param((s) => P.path(s, A, B, v.secondary), 0, 1, 120), api.C.red, [], 3);
@@ -35,11 +42,16 @@
           api.label(chart, 1, P.path(0.5, A, B, 0)[1] - 0.16, "C₁ reto", api.C.blue, "center", "top");
           api.label(chart, 1, P.path(0.5, A, B, v.secondary)[1] + 0.12, "C₂ deformado", api.C.red, "center");
 
-          const s = api.axes(api.second, -1.2, 1.2, -5, 5, "λ", "circulação ∮F·dr");
-          api.line(s, api.curve((l) => P.circulation(A, B, v.secondary, l, 120), -1.2, 1.2, 40), api.C.gold);
+          /* Teto do eixo: a circulação cresce com λ e com a deformação (≈ 6 para λ = 1,2 e
+             deformação 2); a janela acompanha a curva, no mínimo ±5 como antes. */
+          const circ = api.curve((l) => P.circulation(A, B, v.secondary, l, 120), -1.2, 1.2, 40);
+          const cAtual = P.circulation(A, B, v.secondary, v.parameter, 120);
+          const cMax = Math.max(5, ...circ.map((p) => Math.abs(p[1])), Math.abs(cAtual)) * 1.12;
+          const s = api.axes(api.second, -1.2, 1.2, -cMax, cMax, "λ", "circulação ∮F·dr");
+          api.line(s, circ, api.C.gold);
           api.hline(s, 0, "#b9c4bb", []);
           api.vline(s, 0, api.C.green, [4, 4], "conservativo");
-          api.dot(s, v.parameter, P.circulation(A, B, v.secondary, v.parameter), api.C.red, 4.5);
+          api.dot(s, v.parameter, cAtual, api.C.red, 4.5);
         },
 
         text(v, api) {
@@ -160,8 +172,16 @@
           const tf = 3 * T;
           const xs = [];
           for (let i = 0; i <= 600; i += 1) xs.push(P.lorentzPath((tf * i) / 600, v.tertiary, 0, v.secondary, v.parameter, q, m));
+          /* Janela: a caixa antiga (baseada em R = m·v₀/qB) vale para E = 0, mas com E
+             grande o raio da ciclóide é |v₀ − E/B|/ω ≫ R e a trajetória saía do quadro.
+             A janela agora cobre os pontos da trajetória, no mínimo a caixa antiga. */
           const xmax = Math.max(2 * R, d * tf) * 1.15 + R;
-          const chart = api.axes(api.main, -R * 1.5, Math.max(xmax, R * 2), -2.6 * R, 1.2 * R, "x (m)", "y (m)");
+          let x0 = -R * 1.5, x1 = Math.max(xmax, R * 2), y0 = -2.6 * R, y1 = 1.2 * R;
+          xs.forEach((p) => {
+            x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]);
+          });
+          const mx = 0.06 * (x1 - x0), my = 0.12 * (y1 - y0);
+          const chart = api.axes(api.main, x0 - (x0 < -R * 1.5 ? mx : 0), x1 + (x1 > xmax ? mx : 0), y0 - (y0 < -2.6 * R ? my : 0), y1 + (y1 > 1.2 * R ? my : 0), "x (m)", "y (m)");
           api.line(chart, xs, api.C.green, [], 2.6);
           if (v.secondary > 0) {
             api.line(chart, [[0, -R], [d * tf, -R]], api.C.gold, [6, 4], 2);
@@ -170,12 +190,16 @@
           api.dot(chart, 0, 0, api.C.red, 5);
           api.label(chart, 0, R * 0.2, "início", api.C.red, "center");
 
-          const s = api.axes(api.second, 0, tf, -v.tertiary * 1.3 - Math.abs(d), v.tertiary * 1.3 + Math.abs(d), "tempo t (s)", "velocidade (m/s)");
           const vx = api.curve((t) => d + (v.tertiary - d) * Math.cos(w * t), 0, tf, 200);
           const vy = api.curve((t) => -(v.tertiary - d) * Math.sin(w * t), 0, tf, 200);
+          const vr = api.curve((t) => Math.hypot(d + (v.tertiary - d) * Math.cos(w * t), -(v.tertiary - d) * Math.sin(w * t)), 0, tf, 200);
+          /* Limite do eixo: com deriva grande vₓ chega a |2d − v₀| e a rapidez a |d| + |v₀ − d|;
+             o limite antigo (1,3 v₀ + |d|) só cobria E = 0 e deriva pequena. */
+          const vTopo = Math.max(v.tertiary * 1.3 + Math.abs(d), ...[vx, vy, vr].map((c) => Math.max(...c.map((p) => Math.abs(p[1]))) * 1.1));
+          const s = api.axes(api.second, 0, tf, -vTopo, vTopo, "tempo t (s)", "velocidade (m/s)");
           api.line(s, vx, api.C.blue);
           api.line(s, vy, api.C.red);
-          api.line(s, api.curve((t) => Math.hypot(d + (v.tertiary - d) * Math.cos(w * t), -(v.tertiary - d) * Math.sin(w * t)), 0, tf, 200), api.C.gold, [5, 4], 2);
+          api.line(s, vr, api.C.gold, [5, 4], 2);
           api.hline(s, 0, "#b9c4bb", []);
         },
 

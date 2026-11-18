@@ -196,7 +196,9 @@
           if (Number.isFinite(k.rho) && k.rho < 400) {
             api.line(chart, api.param((t) => [cx + k.rho * Math.cos(t), cy + k.rho * Math.sin(t)], 0, api.TAU, 160), api.C.lime, [5, 4], 1.4);
             api.line(chart, [[cx, cy], [k.x, k.y]], api.C.lime, [3, 3], 1.2);
-            api.dot(chart, cx, cy, api.C.lime, 3);
+            /* O centro de curvatura costuma cair fora da janela (ρ grande); o dot não é
+               recortado, então só é desenhado quando cabe no quadro. */
+            if (cx >= chart.xMin && cx <= chart.xMax && cy >= chart.yMin && cy <= chart.yMax) api.dot(chart, cx, cy, api.C.lime, 3);
           }
 
           const esc = xMax * 0.16;

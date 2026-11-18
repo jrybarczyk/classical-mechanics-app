@@ -162,14 +162,21 @@
         draw(api, v) {
           const w = P.respiratoryOmega(v.parameter, v.secondary);
           const T = P.period(w);
-          const chart = api.axes(api.main, 0, Math.min(1.2, 4 * T), -1.2, 1.2, "tempo t (s)", "volume relativo V/V₀");
-          api.line(chart, api.curve((t) => Math.cos(w * t), 0, Math.min(1.2, 4 * T), 400), api.C.green);
+          /* Janela de tempo: 4 períodos (no máximo 1,2 s), mas nunca menos que o instante
+             atual t; com T pequeno (C e I mínimos, T ≈ 0,04 s) 4T < t e o marcador saía. */
+          const tTopo = Math.min(1.25, Math.max(Math.min(1.2, 4 * T), v.tertiary * 1.04));
+          const chart = api.axes(api.main, 0, tTopo, -1.2, 1.2, "tempo t (s)", "volume relativo V/V₀");
+          api.line(chart, api.curve((t) => Math.cos(w * t), 0, tTopo, 600), api.C.green);
           api.hline(chart, 0, "#b9c4bb", []);
-          api.dot(chart, Math.min(v.tertiary, 1.2), Math.cos(w * Math.min(v.tertiary, 1.2)), api.C.red, 5);
+          api.dot(chart, v.tertiary, Math.cos(w * v.tertiary), api.C.red, 5);
           api.vline(chart, T, api.C.gold, [5, 4], `T = ${api.fmt(T, 3)} s`);
 
-          const s = api.axes(api.second, 0.02, 0.3, 0, 12, "complacência C (L/cmH₂O)", "frequência (Hz)");
-          api.line(s, api.curve((c) => P.hertz(P.respiratoryOmega(c, v.secondary)), 0.02, 0.3, 120), api.C.blue);
+          /* Teto do eixo: a frequência chega a ≈ 25 Hz com C e I mínimos; a janela fixa
+             [0, 12] cortava a curva e o ponto. */
+          const serieF = api.curve((c) => P.hertz(P.respiratoryOmega(c, v.secondary)), 0.02, 0.3, 120);
+          const fTopo = Math.max(12, ...serieF.map((p) => p[1]), P.hertz(w)) * 1.08;
+          const s = api.axes(api.second, 0.02, 0.3, 0, fTopo, "complacência C (L/cmH₂O)", "frequência (Hz)");
+          api.line(s, serieF, api.C.blue);
           api.hline(s, 5, api.C.gold, [5, 4], "≈ 5 Hz: resultado do modelo livre");
           api.dot(s, v.parameter, P.hertz(w), api.C.red, 4.5);
         },

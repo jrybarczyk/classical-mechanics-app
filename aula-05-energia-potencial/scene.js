@@ -158,18 +158,29 @@
         draw(api, v) {
           const U0 = 1, a = v.secondary, m = v.tertiary;
           const k = P.Upp(a, U0, a);
-          const xm = a * 2.1;
-          const chart = api.axes(api.main, 0, xm, -0.15, 1.4, "posição x (m)", "U (J)");
-          api.line(chart, api.curve((x) => P.U(x, U0, a), 0, xm, 300), api.C.green, [], 3);
-          api.line(chart, api.curve((x) => 0.5 * k * (x - a) ** 2, 0, xm, 200), api.C.blue, [6, 4], 2.4);
-
+          /* Com ξ grande (sobretudo a pequeno) os extremos a ± ξ, a barra de amplitude e a
+             energia da oscilação saíam do quadro. A janela cresce para contê-los: em x até
+             a+1,1ξ (e abaixo de 0 se a−ξ < 0) e em U até 1,15× o maior valor examinado,
+             com teto 6 U₀ para não achatar o poço; acima do teto o marcador vira círculo
+             oco no topo e a linha de energia fica no teto, com rótulo "fora de escala". */
+          const xm = Math.max(a * 2.1, a + 1.1 * v.parameter);
+          const xIni = Math.min(0, a - 1.1 * v.parameter);
           const E = 0.5 * k * v.parameter ** 2;
-          api.hline(chart, E, api.C.red, [4, 4], "energia da oscilação examinada");
+          const Ul = P.U(a - v.parameter, U0, a), Ur = P.U(a + v.parameter, U0, a);
+          const yTop = Math.max(1.4, Math.min(6, 1.15 * Math.max(E, Ul, Ur)));
+          const chart = api.axes(api.main, xIni, xm, -0.15, yTop, "posição x (m)", "U (J)");
+          api.line(chart, api.curve((x) => P.U(x, U0, a), xIni, xm, 300), api.C.green, [], 3);
+          api.line(chart, api.curve((x) => 0.5 * k * (x - a) ** 2, xIni, xm, 200), api.C.blue, [6, 4], 2.4);
+
+          const fora = E > yTop * 0.97;
+          api.hline(chart, fora ? yTop * 0.97 : E, api.C.red, [4, 4], fora ? `energia da oscilação = ${api.fmt(E, 1)} J (fora de escala)` : "energia da oscilação examinada");
           api.line(chart, [[a - v.parameter, -0.1], [a + v.parameter, -0.1]], api.C.gold, [], 4);
           api.label(chart, a, -0.135, "amplitude ξ", api.C.gold, "center", "top");
           api.dot(chart, a, 0, api.C.blue, 4.5, true);
-          api.dot(chart, a - v.parameter, P.U(a - v.parameter, U0, a), api.C.red, 4);
-          api.dot(chart, a + v.parameter, P.U(a + v.parameter, U0, a), api.C.red, 4);
+          [[a - v.parameter, Ul], [a + v.parameter, Ur]].forEach(([x, u]) => {
+            if (u <= yTop) api.dot(chart, x, u, api.C.red, 4);
+            else api.dot(chart, x, yTop * 0.97, api.C.red, 4, true);
+          });
         },
 
         text(v, api) {
@@ -223,7 +234,10 @@
           const xm = 1.75;
           const uMin = Math.min(...eq.map((p) => p.U), 0);
           const yMin = Math.min(-0.95, uMin - 0.35);
-          const chart = api.axes(api.main, -xm, xm, yMin, 1.8, "posição x/a", "U/U₀");
+          /* O teto fixo de 1,8 cortava a linha de energia (E até 2 U₀) e o ponto x₀ nos
+             extremos do potencial inclinado (U(x₀) chega a ~3,9 U₀): o teto acompanha ambos. */
+          const yTop = Math.max(1.8, 1.1 * (Math.max(v.secondary * U0, P.tiltedU(v.tertiary, U0, a, eps)) + 0.25));
+          const chart = api.axes(api.main, -xm, xm, yMin, yTop, "posição x/a", "U/U₀");
           api.line(chart, api.curve((x) => P.tiltedU(x, U0, a, eps), -xm, xm, 400), api.C.green, [], 3);
           const cores = { estavel: api.C.green, instavel: api.C.red, metaestavel: api.C.gold, indiferente: api.C.gray };
           const nomes = { estavel: "estável (global)", instavel: "instável", metaestavel: "metaestável", indiferente: "indiferente" };
@@ -322,8 +336,14 @@
           api.hline(chart, Flim, api.C.red, [6, 4], "limiar de fratura");
           const dReq = P.requiredCushion(Flim, m, h) * 100;
           if (dReq >= 0.3 && dReq <= 8) api.vline(chart, dReq, api.C.gold, [4, 4], `d mínimo = ${api.fmt(dReq, 1)} cm`);
-          api.dot(chart, v.tertiary, q.Fmed, q.Fmed > Flim ? api.C.red : api.C.green, 6);
-          api.label(chart, v.tertiary + 0.12, q.Fmed, `F̄ = ${api.fmt(q.Fmed / 1000, 1)} kN`, api.C.ink, "left", "middle");
+          /* A hipérbole F̄ ∝ 1/d dispara para d pequeno e o teto da janela (0,6·F̄ em 1 cm)
+             fica abaixo do estado atual com d < ~1,7 cm; sem alargar a escala (que
+             esmagaria o limiar), o marcador vai ao teto, oco, com o valor real no rótulo. */
+          const dentro = q.Fmed <= chart.yMax * 0.96;
+          const yDot = dentro ? q.Fmed : chart.yMax * 0.96;
+          if (dentro) api.dot(chart, v.tertiary, yDot, q.Fmed > Flim ? api.C.red : api.C.green, 6);
+          else api.dot(chart, v.tertiary, yDot, q.Fmed > Flim ? api.C.red : api.C.green, 6, true);
+          api.label(chart, v.tertiary + 0.12, yDot, `F̄ = ${api.fmt(q.Fmed / 1000, 1)} kN${dentro ? "" : " (acima da escala)"}`, api.C.ink, "left", "middle");
 
           /* Painel secundário: altura crítica contra d. */
           const s = api.axes(api.second, 0.3, 8, 0, 1.6, "distância de frenagem d (cm)", "altura crítica h_c (m)");

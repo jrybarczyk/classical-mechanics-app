@@ -37,13 +37,20 @@
 
         draw(api, v) {
           const vel = Math.pow(10, v.parameter);
-          const chart = api.axes(api.main, -7, 1, -8, 7, "tamanho L (m)", "log₁₀ Re", {
+          /* A reta log Re = log L + log(ρv/η) sobe até ~10 com v, ρ e η extremos e
+             levava a curva e o ponto do aluno para fora do quadro: a janela vertical
+             cresce com a reta (piso −8 e teto 7 só como mínimo). */
+          const yRetaIni = L10(P.reynolds(v.tertiary, vel, 1e-7, v.secondary));
+          const yRetaFim = L10(P.reynolds(v.tertiary, vel, 10, v.secondary));
+          const yLo = Math.min(-8, Math.floor(Math.min(yRetaIni, yRetaFim) - 0.5));
+          const yHi = Math.max(7, Math.ceil(Math.max(yRetaIni, yRetaFim) + 0.5));
+          const chart = api.axes(api.main, -7, 1, yLo, yHi, "tamanho L (m)", "log₁₀ Re", {
             xFormat: (t) => `10${api.sup(Math.round(t))}`,
             yFormat: (t) => `10${api.sup(Math.round(t))}`
           });
 
           /* Faixas de regime: abaixo de Re=1 domina a viscosidade. */
-          api.area(chart, [[-7, 0], [1, 0]], "rgba(97,155,96,.07)", -8);
+          api.area(chart, [[-7, 0], [1, 0]], "rgba(97,155,96,.07)", yLo);
           api.hline(chart, 0, api.C.green, [6, 4], "Re = 1  ·  arrasto linear abaixo");
           api.hline(chart, 3, api.C.red, [6, 4], "Re = 10³  ·  arrasto quadrático acima");
 
@@ -54,9 +61,9 @@
              Vazado: cada sistema à sua velocidade típica — o Re que ele tem de fato. */
           SISTEMAS.forEach(([nome, L, vTipica], k) => {
             const yProprio = L10(P.reynolds(v.tertiary, vTipica, L, v.secondary));
-            if (yProprio >= -8 && yProprio <= 7) api.dot(chart, L10(L), yProprio, api.C.gold, 4.5, true);
+            if (yProprio >= yLo && yProprio <= yHi) api.dot(chart, L10(L), yProprio, api.C.gold, 4.5, true);
             const y = L10(P.reynolds(v.tertiary, vel, L, v.secondary));
-            if (y < -8 || y > 7) return;
+            if (y < yLo || y > yHi) return;
             api.dot(chart, L10(L), y, api.C.gold, 4);
             api.label(chart, L10(L), y + (k % 2 ? -0.55 : 0.45), nome, api.C.muted, "center", k % 2 ? "top" : "bottom");
           });
@@ -64,7 +71,7 @@
           /* O ponto escolhido nos controles: (L, v) do aluno, sobre a reta. */
           const Lsel = Math.pow(10, v.quaternary);
           const ySel = L10(P.reynolds(v.tertiary, vel, Lsel, v.secondary));
-          if (ySel >= -8 && ySel <= 7) {
+          if (ySel >= yLo && ySel <= yHi) {
             api.dot(chart, v.quaternary, ySel, api.C.red, 6);
             api.label(chart, v.quaternary + 0.12, ySel - 0.5, "seu (L, v)", api.C.red, "left", "top");
           }
