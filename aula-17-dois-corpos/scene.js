@@ -26,7 +26,19 @@
           const m1 = v.parameter, m2 = 1, M = m1 + m2;
           const p = 0.9, e = v.secondary;
           const lim = (p / (1 - e * e)) * 1.35;
-          const chart = api.axes(api.main, -lim, lim * 0.7, -lim * 0.75, lim * 0.75, "x", "y");
+          /* A janela vem das extensões reais das duas órbitas (o corpo leve percorre
+             até (m₁/M)·r_máx do lado oposto): fixa em lim, a órbita saía do quadro
+             para razões de massa grandes. */
+          const ext = { x0: 0, x1: 0, ym: 0 };
+          for (let i = 0; i <= 360; i += 1) {
+            const th = (api.TAU * i) / 360, r = P.conic(th, p, e);
+            [(m2 / M), -(m1 / M)].forEach((f) => {
+              const x = f * r * Math.cos(th), y = f * r * Math.sin(th);
+              ext.x0 = Math.min(ext.x0, x); ext.x1 = Math.max(ext.x1, x); ext.ym = Math.max(ext.ym, Math.abs(y));
+            });
+          }
+          const larg = ext.x1 - ext.x0, folga = 0.14 * larg;
+          const chart = api.axes(api.main, ext.x0 - folga, ext.x1 + folga, -Math.max(ext.ym * 1.25, 0.32 * larg), Math.max(ext.ym * 1.25, 0.32 * larg), "x", "y");
 
           const pos = (th) => {
             const r = P.conic(th, p, e);
@@ -41,9 +53,9 @@
           api.dot(chart, agora.r1[0], agora.r1[1], api.C.green, 3.5 + 3 / (1 + m2 / m1));
           api.dot(chart, agora.r2[0], agora.r2[1], api.C.red, 3.5 + 3 / (1 + m1 / m2));
           api.dot(chart, 0, 0, api.C.ink, 4.5);
-          api.label(chart, 0.06 * lim, -0.09 * lim, "CM", api.C.ink, "left", "top");
-          api.label(chart, agora.r1[0] + 0.05 * lim, agora.r1[1], "m₁", api.C.green, "left", "middle");
-          api.label(chart, agora.r2[0] - 0.05 * lim, agora.r2[1], "m₂", api.C.red, "right", "middle");
+          api.label(chart, 0.04 * larg, -0.05 * larg, "CM", api.C.ink, "left", "top");
+          api.label(chart, agora.r1[0] + 0.035 * larg, agora.r1[1], "m₁", api.C.green, "left", "middle");
+          api.label(chart, agora.r2[0] - 0.035 * larg, agora.r2[1], "m₂", api.C.red, "right", "middle");
         },
 
         text(v, api) {
@@ -171,20 +183,25 @@
           const mu = P.reducedMass(v.parameter, v.secondary);
           const w = P.vibrationalOmega(v.tertiary, mu);
           const nu = P.waveNumber(w);
-          const chart = api.axes(api.main, 1500, 2600, 0, 1.15, "número de onda ν̃ (cm⁻¹)", "intensidade relativa");
+          /* Janela adaptativa: com k grande e massas pequenas a banda passa de 4000 cm⁻¹,
+             e com k pequeno e massas grandes cai abaixo de 1500; fixa, ela sumia. */
+          const xLo = Math.min(1500, nu * 0.85), xHi = Math.max(2600, nu * 1.12);
+          const chart = api.axes(api.main, xLo, xHi, 0, 1.15, "número de onda ν̃ (cm⁻¹)", "intensidade relativa");
           const banda = (centro, cor, rot, alt = 1, lado = 0) => {
-            api.line(chart, api.curve((x) => alt * Math.exp(-(((x - centro) / 9) ** 2)), 1500, 2600, 400), cor, [], 2.6);
+            api.line(chart, api.curve((x) => alt * Math.exp(-(((x - centro) / 9) ** 2)), xLo, xHi, 600), cor, [], 2.6);
             /* rótulo ao lado da banda (não por cima), para as linhas de 2143 e 2146 não colidirem */
             if (lado < 0) api.label(chart, centro - 14, alt * 0.93, rot, cor, "right", "middle");
             else api.label(chart, centro + 14, alt * 0.93, rot, cor, "left", "middle");
           };
           banda(2143, api.C.grayLight, "¹²C¹⁶O medido: 2143", 0.75, -1);
           banda(2096, "#c9d6e4", "¹³C¹⁶O medido: 2096", 0.5, -1);
-          if (nu > 1500 && nu < 2600) banda(nu, api.C.green, `modelo: ${api.fmt(nu, 0)}`, 1);
+          if (nu > xLo && nu < xHi) banda(nu, api.C.green, `modelo: ${api.fmt(nu, 0)}`, 1);
           api.hline(chart, 0, "#b9c4bb", []);
 
-          const s = api.axes(api.second, 1, 40, 0, 4000, "massa do primeiro átomo (u)", "ν̃ (cm⁻¹)");
-          api.line(s, api.curve((m) => P.waveNumber(P.vibrationalOmega(v.tertiary, P.reducedMass(m, v.secondary))), 1, 40, 140), api.C.blue);
+          const curvaNu = api.curve((m) => P.waveNumber(P.vibrationalOmega(v.tertiary, P.reducedMass(m, v.secondary))), 1, 40, 140);
+          const yTopo = Math.max(4000, Math.max(...curvaNu.map((p) => p[1]), nu) * 1.08);
+          const s = api.axes(api.second, 1, 40, 0, yTopo, "massa do primeiro átomo (u)", "ν̃ (cm⁻¹)");
+          api.line(s, curvaNu, api.C.blue);
           api.dot(s, v.parameter, nu, api.C.red, 4.5);
           api.hline(s, 2143, api.C.gold, [5, 4], "CO medido");
         },

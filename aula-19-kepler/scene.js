@@ -36,8 +36,10 @@
           const p = P.semilatus(L, mu, k);
           const e = P.eccentricity(E, L, mu, k);
           const thMax = P.asymptoteAngle(e) * 0.985;
-          const lim = e < 1 ? (p / (1 - e * e)) * 1.5 + p : p * 6;
-          const chart = api.axes(api.main, -lim, lim * 0.6, -lim * 0.65, lim * 0.65, "x (μ = k = 1)", "y");
+          /* Elipse: o afélio fica em −a(1+ε); com ε perto de 1 ele passava do limite
+             antigo (1,5a + p) e a órbita saía do quadro. */
+          const lim = e < 1 ? Math.max((p / (1 - e)) * 1.12, p * 1.6) : p * 6;
+          const chart = api.axes(api.main, -lim, Math.max(lim * 0.6, 1.25 * p / (1 + e)), -lim * 0.65, lim * 0.65, "x (μ = k = 1)", "y");
 
           /* Família de referência: as quatro cônicas com o mesmo p. */
           [[0, "#dde5de"], [0.6, "#d4e0d5"], [1, "#e8ded0"], [1.6, "#e8d5d0"]].forEach(([ee, cor]) => {
@@ -47,7 +49,14 @@
           api.line(chart, api.param((th) => { const r = P.conic(th, p, e); return [r * Math.cos(th), r * Math.sin(th)]; }, -thMax, thMax, 500),
             e < 1 ? api.C.green : e > 1 ? api.C.red : api.C.gold, [], 3.2);
 
-          const th = Math.min(v.tertiary, thMax);
+          /* Nas órbitas abertas r → ∞ perto da assíntota: o marcador recua ao longo da
+             curva até o ponto caber na janela, em vez de sair do quadro. */
+          let th = Math.min(v.tertiary, thMax);
+          const cabe = (t) => {
+            const rr = P.conic(t, p, e), x = rr * Math.cos(t), y = rr * Math.sin(t);
+            return x > -0.95 * lim && x < 0.92 * chart.xMax && Math.abs(y) < 0.92 * 0.65 * lim;
+          };
+          for (let i = 0; i < 600 && th > 0 && !cabe(th); i += 1) th *= 0.99;
           const r = P.conic(th, p, e);
           api.line(chart, [[0, 0], [r * Math.cos(th), r * Math.sin(th)]], api.C.blue, [4, 4], 1.6);
           api.dot(chart, r * Math.cos(th), r * Math.sin(th), api.C.ink, 5);
@@ -191,17 +200,24 @@
             api.vline(chart, ra / 1000, api.C.gold, [4, 4]);
             api.label(chart, ra / 1000, chart.yMin + (chart.yMax - chart.yMin) * 0.14, "apogeu", api.C.gold, "left", "bottom");
           }
-          const r = Math.min(Math.max(v.tertiary * 1000, rp, P.R_TERRA), ra);
+          const r = Math.min(Math.max(v.tertiary * 1000, rp, P.R_TERRA), ra, 100000e3);
           if (r <= ra) api.dot(chart, r / 1000, P.visViva(r, a, P.GM_TERRA) / 1000, api.C.ink, 5.5);
           api.label(chart, 96000, P.escapeSpeed(96000e3, P.GM_TERRA) / 1000 + 0.35, "escape", api.C.red, "right");
           api.label(chart, 96000, P.circularSpeed(96000e3, P.GM_TERRA) / 1000 - 0.45, "circular", api.C.blue, "right", "top");
 
           const s = api.axes(api.second, 0, 0.85, 0, 12, "excentricidade ε", "velocidade (km/s)");
-          api.line(s, api.curve((ee) => P.visViva(P.perihelion(a, ee), a, P.GM_TERRA) / 1000, 0, 0.85, 120), api.C.red);
-          api.line(s, api.curve((ee) => P.visViva(P.aphelion(a, ee), a, P.GM_TERRA) / 1000, 0, 0.85, 120), api.C.blue);
+          /* Só vale até eMax (perigeu na superfície); depois disso a velocidade de perigeu
+             dispara e a curva saía do quadro. A parte impossível fica pontilhada. */
           const eMax = 1 - P.R_TERRA / a;
+          const eFis = Math.max(0, Math.min(0.85, eMax));
+          api.line(s, api.curve((ee) => P.visViva(P.perihelion(a, ee), a, P.GM_TERRA) / 1000, 0, eFis, 120), api.C.red);
+          if (eFis < 0.85) api.line(s, api.curve((ee) => P.visViva(P.perihelion(a, ee), a, P.GM_TERRA) / 1000, eFis, 0.85, 60), api.C.grayLight, [2, 4], 1.6);
+          api.line(s, api.curve((ee) => P.visViva(P.aphelion(a, ee), a, P.GM_TERRA) / 1000, 0, 0.85, 120), api.C.blue);
           if (eMax < 0.85) api.vline(s, eMax, api.C.ink, [4, 4], "perigeu na superfície");
-          api.dot(s, e, P.visViva(rp, a, P.GM_TERRA) / 1000, api.C.red, 4.5);
+          /* Órbita impossível (perigeu abaixo da superfície): o ponto vai ao teto, oco. */
+          const vPer = P.visViva(rp, a, P.GM_TERRA) / 1000;
+          if (vPer <= 12) api.dot(s, e, vPer, api.C.red, 4.5);
+          else api.dot(s, e, 11.6, api.C.red, 4.5, true);
           api.dot(s, e, P.visViva(ra, a, P.GM_TERRA) / 1000, api.C.blue, 4.5);
         },
 

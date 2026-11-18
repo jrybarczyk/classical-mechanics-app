@@ -95,12 +95,18 @@
           const b = v.secondary;
           const M = P.M_TERRA, R = P.R_TERRA;
           const gs = (P.G * M) / (R * R);
-          const chart = api.axes(api.main, 0, 2.5, 0, gs * 1.35, "r / R", "|g| (m/s²)");
-          api.area(chart, [[a, gs * 1.35], [b, gs * 1.35]], "rgba(97,155,96,.10)", 0);
-          api.line(chart, api.curve((x) => Math.abs(P.thickShellField(x * R, a * R, b * R, M)), 0.001, 2.5, 400), api.C.green, [], 3);
+          /* Teto do eixo: o campo fora da casca vale GM/r², máximo em r = b. Para
+             uma casca fina e pequena ele passa de 20 g_s; o eixo se adapta para a
+             curva nunca sair da janela. */
+          const serie = api.curve((x) => Math.abs(P.thickShellField(x * R, a * R, b * R, M)), 0.001, 2.5, 400);
+          const pico = Math.max(...serie.map((p) => p[1]));
+          const yTopo = Math.max(gs * 1.35, pico * 1.12);
+          const chart = api.axes(api.main, 0, 2.5, 0, yTopo, "r / R", "|g| (m/s²)");
+          api.area(chart, [[a, yTopo], [b, yTopo]], "rgba(97,155,96,.10)", 0);
+          api.line(chart, serie, api.C.green, [], 3);
           api.vline(chart, a, api.C.blue, [4, 4], "a");
           api.vline(chart, b, api.C.red, [4, 4], "b");
-          api.label(chart, (a + b) / 2, gs * 1.28, "matéria", api.C.muted, "center");
+          api.label(chart, (a + b) / 2, yTopo * 0.95, "matéria", api.C.muted, "center");
           if (a > 0) api.label(chart, a / 2, gs * 0.12, "cavidade: g = 0", api.C.blue, "center");
           api.dot(chart, v.tertiary, Math.abs(P.thickShellField(v.tertiary * R, a * R, b * R, M)), api.C.ink, 5.5);
         },
@@ -153,10 +159,10 @@
         secondary: true,
 
         draw(api, v) {
-          /* Teto do eixo: a referência (r₁, Ḋ₁) e o início da curva em r = 0,15 m ficam sempre visíveis. */
-          const ymax = Math.max(v.secondary, P.doseRate(v.secondary, v.tertiary, 0.15)) * 1.05;
+          /* Teto do eixo: a referência (r₁, Ḋ₁) e o ponto em r = 0,1 m (mínimo do controle) ficam sempre visíveis. */
+          const ymax = Math.max(v.secondary, P.doseRate(v.secondary, v.tertiary, 0.1)) * 1.05;
           const chart = api.axes(api.main, 0.1, 6, 0, ymax, "distância r (m)", "taxa de dose (µSv/h)");
-          api.line(chart, api.curve((r) => P.doseRate(v.secondary, v.tertiary, r), 0.15, 6, 300), api.C.green, [], 3);
+          api.line(chart, api.curve((r) => P.doseRate(v.secondary, v.tertiary, r), 0.1, 6, 300), api.C.green, [], 3);
           api.dot(chart, v.tertiary, v.secondary, api.C.gold, 5.5);
           api.label(chart, v.tertiary, v.secondary * 1.06, "referência", api.C.gold, "left");
           api.dot(chart, v.parameter, P.doseRate(v.secondary, v.tertiary, v.parameter), api.C.red, 5.5);
@@ -167,9 +173,9 @@
           });
 
           const L10 = Math.log10;
-          const s = api.axes(api.second, L10(0.15), L10(6), L10(P.doseRate(v.secondary, v.tertiary, 6)), L10(P.doseRate(v.secondary, v.tertiary, 0.15)),
+          const s = api.axes(api.second, L10(0.1), L10(6), L10(P.doseRate(v.secondary, v.tertiary, 6)), L10(P.doseRate(v.secondary, v.tertiary, 0.1)),
             "log₁₀ r", "log₁₀ taxa", { xFormat: (t) => `10${api.sup(Math.round(t * 10) / 10)}`, yFormat: (t) => `10${api.sup(Math.round(t))}` });
-          api.line(s, api.curve((lr) => L10(P.doseRate(v.secondary, v.tertiary, Math.pow(10, lr))), L10(0.15), L10(6), 120), api.C.blue);
+          api.line(s, api.curve((lr) => L10(P.doseRate(v.secondary, v.tertiary, Math.pow(10, lr))), L10(0.1), L10(6), 120), api.C.blue);
           const x0 = L10(0.4), y0 = L10(P.doseRate(v.secondary, v.tertiary, 0.4));
           api.line(s, [[x0, y0], [x0 + 0.4, y0], [x0 + 0.4, y0 - 0.8]], api.C.gold, [4, 4], 1.6);
           api.label(s, x0 + 0.42, y0 - 0.4, "inclinação −2", api.C.gold, "left");

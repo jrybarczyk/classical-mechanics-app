@@ -27,7 +27,9 @@
         draw(api, v) {
           const mu = 1, k = v.tertiary;
           const r1 = v.parameter, r2 = v.secondary;
-          const chart = api.axes(api.main, 0.8, 12, -k / 1.4, k * 1.15, "raio r", "energia e rapidez");
+          /* Teto do eixo: a rapidez circular √(k/r) passa de 1,15k quando k < 1. */
+          const yTopo = Math.max(k * 1.15, P.circularSpeed(Math.min(r1, r2, 0.8 + 1e-9), k, mu) * 1.1);
+          const chart = api.axes(api.main, 0.8, 12, -k / 1.4, yTopo, "raio r", "energia e rapidez");
           api.line(chart, api.curve((r) => -k / (2 * r), 0.8, 12, 200), api.C.green, [], 3);
           api.line(chart, api.curve((r) => P.circularSpeed(r, k, mu), 0.8, 12, 200), api.C.blue, [], 2.6);
           api.line(chart, api.curve((r) => k / (2 * r), 0.8, 12, 200), api.C.gold, [5, 4], 2);
@@ -44,7 +46,9 @@
 
           /* Elipse de Hohmann tangente às duas circunferências (subida ou descida). */
           const h = P.hohmann(r1, r2, k, mu);
-          const s = api.axes(api.second, -1.3 * h.a, 1.3 * h.a, -1.3 * h.a, 1.3 * h.a, "", "", { xTicks: [], yTicks: [] });
+          /* A janela segue o maior raio: com r₂/r₁ > 1,86 a circunferência externa passava de 1,3a. */
+          const meio = 1.15 * Math.max(r1, r2);
+          const s = api.axes(api.second, -meio, meio, -meio, meio, "", "", { xTicks: [], yTicks: [] });
           api.line(s, api.param((t) => [r1 * Math.cos(t), r1 * Math.sin(t)], 0, api.TAU, 160), api.C.grayLight, [4, 4], 1.6);
           api.line(s, api.param((t) => [r2 * Math.cos(t), r2 * Math.sin(t)], 0, api.TAU, 160), api.C.red, [4, 4], 1.6);
           const e = Math.abs(r2 - r1) / (r2 + r1);

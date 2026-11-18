@@ -104,7 +104,16 @@
           const valido = Number.isFinite(rcBruto) && rcBruto > 1e-6 && rcBruto < 1e6;
           const rc = valido ? rcBruto : 1;
           const V0 = P.effective(rc, k, L, mu, n);
-          const escala = Math.max(Math.abs(V0), 1) * 2.2;
+          const escala0 = Math.max(Math.abs(V0), 1) * 2.2;
+          /* Teto do eixo: para n < 0 o potencial cresce como r^(−n+...) e passava da
+             janela; o teto agora cobre V até 4·r_c, mas a barreira 1/r² perto da
+             origem continua cortada de propósito (r < 0,55·r_c não entra no cálculo). */
+          let vMax = V0 + escala0;
+          for (let i = 0; i <= 60; i += 1) {
+            const r = rc * (0.55 + (3.45 * i) / 60), val = P.effective(r, k, L, mu, n);
+            if (Number.isFinite(val)) vMax = Math.max(vMax, V0 + (val - V0) * 1.1);
+          }
+          const escala = Math.max(escala0, vMax - V0);
           const chart = api.axes(api.main, 0, rc * 4, V0 - escala * 0.6, V0 + escala, "r", "V");
           api.line(chart, api.curve((r) => P.effective(r, k, L, mu, n), rc * 0.22, rc * 4, 320), api.C.green, [], 3);
           if (valido) {
